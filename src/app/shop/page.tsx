@@ -46,7 +46,7 @@ export default function ShopPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-white to-gray-50">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-white to-gray-50">
         <Loader className="w-12 h-12 animate-spin text-[#1d4e89] mb-4" />
         <p className="text-gray-600 font-medium">Loading our collection...</p>
       </div>
@@ -73,11 +73,11 @@ export default function ShopPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white">
+    <main className="min-h-screen bg-linear-to-b from-white via-gray-50 to-white">
       <Navigation />
 
       {/* Hero Header */}
-      <section className="bg-gradient-to-br from-[#1d4e89] to-[#15396b] text-white py-12 sm:py-16\">
+      <section className="bg-linear-to-br from-[#1d4e89] to-[#15396b] text-white py-12 sm:py-16\">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4\">
             Our Collection
@@ -115,15 +115,17 @@ export default function ShopPage() {
                 className="group overflow-hidden hover:shadow-2xl hover:border-[#1d4e89]/20 transition-all duration-300 animate-in fade-in zoom-in-95"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-50 overflow-hidden">
+                <div className="relative aspect-square bg-linear-to-br from-gray-100 to-gray-50 overflow-hidden">
                   {product.image ? (
                     <>
                       <Image 
                         src={product.image} 
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        width={400}
+                        height={400}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       
                       {/* Quick View Overlay */}
                       <Link
@@ -155,7 +157,7 @@ export default function ShopPage() {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <p className="text-xl font-bold bg-gradient-to-r from-[#1d4e89] to-[#2d6bb3] bg-clip-text text-transparent">
+                    <p className="text-xl font-bold bg-linear-to-r from-[#1d4e89] to-[#2d6bb3] bg-clip-text text-transparent">
                       ₦{product.price.toLocaleString()}
                     </p>
                     <Badge variant="outline" className="bg-yellow-50 border-yellow-200 text-yellow-800">
@@ -181,7 +183,7 @@ export default function ShopPage() {
                     className={`flex-1 ${
                       addedProducts.has(product.id)
                         ? 'bg-green-500 hover:bg-green-600 text-white'
-                        : 'bg-gradient-to-r from-[#1d4e89] to-[#15396b] hover:shadow-lg'
+                        : 'bg-linear-to-r from-[#1d4e89] to-[#15396b] hover:shadow-lg'
                     }`}
                   >
                     {addedProducts.has(product.id) ? (

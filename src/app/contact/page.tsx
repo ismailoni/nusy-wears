@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Toaster } from '@/components/ui/sonner';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -74,7 +73,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Toaster richColors position="top-center" />
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -103,7 +101,7 @@ export default function ContactPage() {
               
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5 text-[#1d4e89]" />
                   </div>
                   <div>
@@ -115,7 +113,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                     <Phone className="w-5 h-5 text-[#1d4e89]" />
                   </div>
                   <div>
@@ -127,7 +125,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                     <MapPin className="w-5 h-5 text-[#1d4e89]" />
                   </div>
                   <div>
@@ -141,7 +139,7 @@ export default function ContactPage() {
             </div>
 
             {/* WhatsApp Quick Contact */}
-            <div className="bg-gradient-to-br from-[#25d366] to-[#21c45d] rounded-2xl p-6 text-white shadow-sm">
+            <div className="bg-linear-to-br from-[#25d366] to-[#21c45d] rounded-2xl p-6 text-white shadow-sm">
               <h3 className="text-lg font-bold mb-2">Prefer WhatsApp?</h3>
               <p className="text-white/90 text-sm mb-4">
                 Chat with us directly for instant support

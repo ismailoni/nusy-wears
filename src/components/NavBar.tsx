@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-export default function Navigation() {
+export default function NavBar() {
   const pathname = usePathname();
   const { totalItems } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

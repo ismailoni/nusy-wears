@@ -10,10 +10,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import Navigation from '@/components/NavBar';
 import { Order } from '@/types/order';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import NavBar from '@/components/NavBar';
 
 export default function TrackOrderPage() {
   const params = useSearchParams();
@@ -109,7 +109,7 @@ export default function TrackOrderPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-b from-white via-gray-50 to-white">
-      <Navigation />
+      <NavBar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         {/* Header */}
@@ -285,7 +285,7 @@ export default function TrackOrderPage() {
                     <div key={index} className="flex items-start gap-4 pb-3 border-b last:border-0">
                       <div className="w-16 h-16 bg-linear-to-br from-gray-100 to-gray-50 rounded-lg overflow-hidden shrink-0 shadow-sm">
                         {item.image && (
-                          <Image src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          <Image src={item.image} alt={item.name} className="w-full h-full object-cover" width={64} height={64} />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">

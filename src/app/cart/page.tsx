@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Card
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/NavBar';
 import Image from 'next/image';
 
@@ -67,11 +66,13 @@ export default function CartPage() {
             {items.map((item) => (
               <Card key={`${item.id}-${item.lensOption}`} className="p-6 shadow-sm">
                 <div className="flex gap-4">
-                  <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                  <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                     <Image
                       src={item.image}
                       alt={item.name}
                       className="w-full h-full object-cover"
+                      width={96}
+                      height={96}
                     />
                   </div>
 
@@ -82,14 +83,7 @@ export default function CartPage() {
                         {item.lensOption && (
                           <p className="text-sm text-gray-600 mb-1">Lens: {item.lensOption}</p>
                         )}
-                        {item.customizedLens && (
-                          <div className="text-sm text-gray-600 mb-1">
-                            <p>Coating: {item.customizedLens.coating}</p>
-                          </div>
-                        )}
-                        {item.prescription && (
-                          <Badge variant="secondary" className="mt-1">✓ Prescription included</Badge>
-                        )}
+                      
                       </div>
                       <Button
                         variant="ghost"

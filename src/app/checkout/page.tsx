@@ -5,11 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Trash2, Check, Lock, Download, Home } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { lensOptions, lensCoatings } from '@/data/products';
+import { lensOptions } from '@/data/products';
 import { PaystackModal } from '@/components/PaystackModal';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
 import Navigation from '@/components/NavBar';
 import { db } from '@/firebase/config';
 import { collection, addDoc, doc, getDoc, updateDoc, increment, Timestamp } from 'firebase/firestore';
@@ -89,9 +88,7 @@ export default function CheckoutPage() {
           price: item.price,
           quantity: item.quantity,
           image: item.image,
-          lensOption: item.lensOption || 'standard',
-          ...(item.customizedLens && { customizedLens: item.customizedLens }),
-          ...(item.prescription && { prescription: item.prescription }),
+          lensOption: item.lensOption || 'standard'
         })),
         customer: {
           name: formData.name,
@@ -172,147 +169,206 @@ export default function CheckoutPage() {
   const downloadReceipt = () => {
     if (!orderDetails) return;
 
-    // Render an HTML invoice, convert to canvas via html2canvas and save as PDF using jsPDF.
-    // Use dynamic imports for html2canvas and jsPDF (installed via npm)
-
-    const createInvoiceElement = () => {
-      const wrapper = document.createElement('div');
-      // use tailwind/shadcn classes so the invoice inherits project styles
-      wrapper.className = 'max-w-2xl bg-white p-6 text-sm text-gray-900';
-      wrapper.innerHTML = `
-        <div class="flex items-center gap-4 mb-4">
-          <img src="/logo.png" onerror="this.style.display='none'" alt="Nusy Wears" class="h-14 object-contain" />
-          <div>
-            <h2 class="text-2xl font-bold text-[#1d4e89] m-0">NUSY WEARS</h2>
-            <div class="text-xs text-gray-500">Order Receipt</div>
-          </div>
-        </div>
-        <div class="border-t border-b py-3 mb-4">
-          <div class="flex justify-between gap-4">
-            <div>
-              <div class="text-xs text-gray-500">Order ID</div>
-              <div class="font-semibold">${orderDetails.orderId}</div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500">Order Date</div>
-              <div>${new Date(orderDetails.orderDate).toLocaleString()}</div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500">Payment Ref</div>
-              <div class="font-mono text-sm">${orderDetails.paymentReference}</div>
-            </div>
-          </div>
-        </div>
-
-        <h3 class="text-base font-semibold mb-2">Customer</h3>
-        <div class="text-sm text-gray-700 mb-4">
-          <div>${orderDetails.customer.name}</div>
-          <div>${orderDetails.customer.email || ''} ${orderDetails.customer.phone ? '• ' + orderDetails.customer.phone : ''}</div>
-          <div>${orderDetails.customer.address || ''} ${orderDetails.customer.zipCode ? '• ' + orderDetails.customer.zipCode : ''}</div>
-        </div>
-
-        <h3 class="text-base font-semibold mb-2">Items</h3>
-        <table class="w-full border-collapse mb-4 text-sm">
-          <thead>
-            <tr class="text-left text-xs text-gray-500">
-              <th class="pb-2">Item</th>
-              <th class="pb-2 text-right">Price</th>
-              <th class="pb-2 text-right">Qty</th>
-              <th class="pb-2 text-right">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${orderDetails.items.map((item) => `
-              <tr class="border-t">
-                <td class="py-3 align-top">
-                  <div class="font-medium">${item.name}</div>
-                  <div class="text-xs text-gray-500">${item.lensOption ? `Lens: ${item.lensOption}` : ''}${item.customizedLens ? ` • Coating: ${item.customizedLens.coating}` : ''}</div>
-                </td>
-                <td class="py-3 text-right align-top">₦${item.price.toLocaleString()}</td>
-                <td class="py-3 text-right align-top">${item.quantity}</td>
-                <td class="py-3 text-right align-top">₦${(item.price * item.quantity).toLocaleString()}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-
-        <div class="flex justify-end">
-          <div class="w-80">
-            <div class="flex justify-between py-2"><div class="text-sm text-gray-500">Total</div><div class="font-semibold">₦${orderDetails.totalAmount.toLocaleString()}</div></div>
-          </div>
-        </div>
-
-        <div class="border-t pt-4 text-xs text-gray-500">Thank you for shopping with Nusy Wears! For support: +234 808 202 0919 • info@nusywears.com</div>
-      `;
-      return wrapper;
-    };
-
     (async () => {
       try {
-        // load modules via dynamic import (installed packages)
-
-        type Html2CanvasType = (el: HTMLElement, opts?: Record<string, unknown>) => Promise<HTMLCanvasElement>;
         type JsPDFConstructor = new (...args: unknown[]) => {
           internal: { pageSize: { getWidth(): number; getHeight(): number } };
-          addImage: (...args: unknown[]) => void;
-          addPage: () => void;
+          setFontSize: (size: number) => void;
+          setTextColor: (r: number, g?: number, b?: number) => void;
+          setFont: (font: string, style?: string) => void;
+          text: (text: string, x: number, y: number, opts?: Record<string, unknown>) => void;
+          setDrawColor: (r: number, g?: number, b?: number) => void;
+          setLineWidth: (width: number) => void;
+          line: (x1: number, y1: number, x2: number, y2: number) => void;
+          setFillColor: (r: number, g?: number, b?: number) => void;
+          roundedRect: (x: number, y: number, w: number, h: number, rx: number, ry: number, style: string) => void;
           save: (name: string) => void;
         };
 
-        const html2canvasModule = await import('html2canvas');
-        const html2canvas = ((html2canvasModule as unknown) as { default?: Html2CanvasType }).default ?? ((html2canvasModule as unknown) as Html2CanvasType);
         const jspdfModule = await import('jspdf');
         const jsPDFCtor = ((jspdfModule as unknown) as { jsPDF?: JsPDFConstructor }).jsPDF ?? ((jspdfModule as unknown) as JsPDFConstructor);
 
-        const invoiceEl = createInvoiceElement();
-        invoiceEl.style.position = 'fixed';
-        invoiceEl.style.left = '-9999px';
-        document.body.appendChild(invoiceEl);
+        const doc = new jsPDFCtor({ unit: 'pt', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
 
-        const canvas = await html2canvas(invoiceEl, { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL('image/png');
+        // Header with company info
+        doc.setFontSize(18);
+        doc.setTextColor(29, 78, 137); // #1d4e89
+        doc.setFont('helvetica', 'bold');
+        doc.text('NUSY WEARS', 120, 50);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Premium Optical Solutions', 120, 64);
+        doc.text('Lagos, Nigeria', 120, 78);
 
-        const pdf = new jsPDFCtor('p', 'pt', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
+        // Separator line
+        doc.setDrawColor(29, 78, 137);
+        doc.setLineWidth(1.2);
+        doc.line(40, 100, pageWidth - 40, 100);
 
-        // Calculate image dimensions to fit pdf width
-        const imgWidth = pdfWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        // Order metadata box
+        const metaBoxY = 116;
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(234, 236, 240);
+        doc.roundedRect(40, metaBoxY, pageWidth - 80, 60, 8, 8, 'FD');
 
-        let heightLeft = imgHeight;
-        let position = 0;
+        doc.setTextColor(71, 85, 105);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Order ID', 56, metaBoxY + 16);
+        doc.text('Order Date', 56, metaBoxY + 34);
+        doc.text('Payment Ref', 56, metaBoxY + 52);
 
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text(orderDetails.orderId, 140, metaBoxY + 16);
+        doc.text(new Date(orderDetails.orderDate).toLocaleDateString(), 140, metaBoxY + 34);
+        doc.text(orderDetails.paymentReference || '', 140, metaBoxY + 52);
 
-        while (heightLeft > -pdfHeight) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-          heightLeft -= pdfHeight;
-        }
+        // Customer section
+        let currentY = metaBoxY + 80;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(15, 23, 42);
+        doc.text('Customer Information', 40, currentY);
 
-        pdf.save(`Nusy-Wears-Receipt-${orderDetails.orderId}.pdf`);
-        document.body.removeChild(invoiceEl);
+        currentY += 16;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        doc.text('Name:', 56, currentY);
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.text(orderDetails.customer.name, 140, currentY);
+
+        currentY += 16;
+        doc.setTextColor(71, 85, 105);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Email:', 56, currentY);
+        doc.setTextColor(15, 23, 42);
+        doc.text(orderDetails.customer.email || '', 140, currentY);
+
+        currentY += 16;
+        doc.setTextColor(71, 85, 105);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Phone:', 56, currentY);
+        doc.setTextColor(15, 23, 42);
+        doc.text(orderDetails.customer.phone || '', 140, currentY);
+
+        currentY += 16;
+        doc.setTextColor(71, 85, 105);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Address:', 56, currentY);
+        doc.setTextColor(15, 23, 42);
+        doc.text(orderDetails.customer.address || '', 140, currentY);
+
+        // Items section
+        currentY += 28;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(15, 23, 42);
+        doc.text('Order Items', 40, currentY);
+
+        currentY += 16;
+        // Table header
+        doc.setFillColor(29, 78, 137);
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Product', 56, currentY);
+        doc.text('Price', 200, currentY);
+        doc.text('Qty', 280, currentY);
+        doc.text('Subtotal', pageWidth - 56, currentY, { align: 'right' });
+
+        currentY += 12;
+        doc.setDrawColor(226, 232, 240);
+        doc.line(40, currentY, pageWidth - 40, currentY);
+
+        // Item rows
+        currentY += 8;
+        doc.setFontSize(9);
+        orderDetails.items.forEach((item) => {
+          doc.setTextColor(15, 23, 42);
+          doc.setFont('helvetica', 'bold');
+          doc.text(item.name, 56, currentY);
+
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(100);
+          const itemDetails = `${item.lensOption ? `Lens: ${item.lensOption}` : ''}${item.customizedLens ? ` • Coating: ${item.customizedLens.coating}` : ''}`;
+          if (itemDetails) {
+            doc.text(itemDetails, 56, currentY + 7);
+            currentY += 10;
+          }
+
+          doc.setTextColor(15, 23, 42);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(9);
+          doc.text(`₦${item.price.toLocaleString()}`, 200, currentY);
+          doc.text(item.quantity.toString(), 280, currentY);
+          doc.text(`₦${(item.price * item.quantity).toLocaleString()}`, pageWidth - 56, currentY, { align: 'right' });
+          currentY += 12;
+        });
+
+        // Summary section
+        currentY += 12;
+        const leftCol = 280;
+        const rightCol = pageWidth - 56;
+
+        doc.setDrawColor(226, 232, 240);
+        doc.line(leftCol, currentY, rightCol, currentY);
+
+        currentY += 14;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100);
+        doc.text('Subtotal:', leftCol, currentY);
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`₦${orderDetails.totalAmount.toLocaleString()}`, rightCol, currentY, { align: 'right' });
+
+        currentY += 14;
+        doc.setTextColor(100);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Shipping:', leftCol, currentY);
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Free', rightCol, currentY, { align: 'right' });
+
+        currentY += 14;
+        doc.setDrawColor(226, 232, 240);
+        doc.line(leftCol, currentY, rightCol, currentY);
+
+        // Grand total
+        currentY += 14;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(29, 78, 137);
+        doc.text('Total Due:', leftCol, currentY);
+        doc.text(`₦${orderDetails.totalAmount.toLocaleString()}`, rightCol, currentY, { align: 'right' });
+
+        // Footer
+        const footerY = pageHeight - 50;
+        doc.setDrawColor(241, 245, 249);
+        doc.line(40, footerY - 10, pageWidth - 40, footerY - 10);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(148, 163, 184);
+        doc.text('Thank you for shopping with Nusy Wears!', 40, footerY + 10);
+        doc.text('Support: +234 808 202 0919 • info@nusywears.com', pageWidth - 40, footerY + 10, { align: 'right' });
+
+        doc.save(`Nusy-Wears-Receipt-${orderDetails.orderId}.pdf`);
 
         toast.success('Receipt Downloaded', {
           description: 'Your receipt has been downloaded successfully.',
         });
       } catch (err) {
         console.error('PDF generation failed', err);
-        toast.error('Failed to generate PDF receipt. Opening plain text as fallback.');
-        // fallback to text download
-        const receiptContent = `Order ID: ${orderDetails.orderId}\nTotal: ₦${orderDetails.totalAmount}`;
-        const blob = new Blob([receiptContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Nusy-Wears-Receipt-${orderDetails.orderId}.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        toast.error('Failed to generate PDF receipt.');
       }
     })();
   };
@@ -320,7 +376,6 @@ export default function CheckoutPage() {
   if (orderPlaced) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Toaster richColors position="top-center" />
         <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-xl">
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -393,7 +448,6 @@ export default function CheckoutPage() {
   if (processingOrder) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Toaster richColors position="top-center" />
         <div className="bg-white rounded-2xl p-8 max-w-md text-center">
           <div className="w-16 h-16 border-4 border-[#1d4e89] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 mb-2">Processing Your Order...</h2>
@@ -406,7 +460,6 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Toaster richColors position="top-center" />
         <Navigation />
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
@@ -422,7 +475,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Toaster richColors position="top-center" />
       <Navigation />
 
       <header className="bg-white shadow-sm">
@@ -452,6 +504,8 @@ export default function CheckoutPage() {
                           src={item.image}
                           alt={item.name}
                           className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg shrink-0"
+                          width={96}
+                          height={96}
                         />
                         <div className="flex-1 min-w-0">
                           <h3 className="text-gray-900 mb-1 text-sm sm:text-base">{item.name}</h3>
@@ -460,15 +514,7 @@ export default function CheckoutPage() {
                               Lens: {lensOption.label}
                             </p>
                           )}
-                          {item.lensOption === 'customized' && item.customizedLens && (
-                            <div className="text-xs text-gray-500 mb-2">
-                              <p>Power: {item.customizedLens.power}</p>
-                              <p>
-                                Coating:{' '}
-                                {lensCoatings.find((coating) => coating.id === item.customizedLens?.coating)?.label}
-                              </p>
-                            </div>
-                          )}
+
                           <p className="text-gray-600 mb-2 text-sm sm:text-base">₦{item.price.toLocaleString()}</p>
                           <div className="flex items-center gap-2 sm:gap-3">
                             <button

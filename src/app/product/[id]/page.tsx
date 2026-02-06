@@ -7,7 +7,6 @@ import { ArrowLeft, ShoppingCart, Check, ChevronDown, Info, Upload, FileText, Ey
 import { doc, getDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
 import { Product, lensOptions, lensCoatings } from '@/data/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -17,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
 import Navigation from '@/components/NavBar';
+import Image from 'next/image';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -55,26 +55,26 @@ export default function ProductDetailPage() {
   const [hasPrescription, setHasPrescription] = useState(false);
 
   useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const docRef = doc(db, 'products', id);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          setProduct({ id: docSnap.id, ...docSnap.data() } as Product);
+        } else {
+          setProduct(null);
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchProduct();
   }, [id]);
-
-  const fetchProduct = async () => {
-    try {
-      const docRef = doc(db, 'products', id);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        setProduct({ id: docSnap.id, ...docSnap.data() } as Product);
-      } else {
-        setProduct(null);
-      }
-    } catch (error) {
-      console.error('Error fetching product:', error);
-      setProduct(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -142,11 +142,7 @@ export default function ProductDetailPage() {
       name: product.name,
       price: totalPrice,
       image: product.image,
-      lensOption: selectedLens,
-      customizedLens: selectedLens === 'customized' ? {
-        coating: lensCoating
-      } : undefined,
-      prescription: selectedLens === 'customized' && hasPrescription ? prescriptionData : undefined
+      lensOption: selectedLens
     });
     
     setAdded(true);
@@ -189,6 +185,7 @@ export default function ProductDetailPage() {
       
       // Create customized order in Firestore
       const orderData = {
+        orderId: `ORD-${new Date()}`,
         productId: product.id,
         productName: product.name,
         productImage: product.image,
@@ -209,7 +206,8 @@ export default function ProductDetailPage() {
           email: customerInfo.email,
           phone: customerInfo.phone,
         },
-        status: 'pending-quote',
+        paymentStatus: 'pending-quote',
+        deliveryStatus: 'processing',
         submittedAt: Timestamp.now(),
       };
 
@@ -284,7 +282,6 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Toaster richColors position="top-center" />
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -301,10 +298,12 @@ export default function ProductDetailPage() {
             {/* Product Image */}
             <div className="bg-white rounded-2xl p-6 lg:p-8">
               <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
-                <img
+                <Image
                   src={product.image}
                   alt={product.name}
                   className="w-full h-full object-cover"
+                  width={400}
+                  height={400}
                 />
               </div>
             </div>
@@ -482,7 +481,7 @@ export default function ProductDetailPage() {
                   {hasPrescription && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <div className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <Check className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                         <div className="flex-1">
                           <p className="text-sm font-medium text-green-900 mb-1">Prescription Details Saved</p>
                           <div className="text-xs text-green-700 space-y-1">
@@ -547,28 +546,28 @@ export default function ProductDetailPage() {
 
             {/* Features */}
             <div className="bg-white rounded-2xl p-6 lg:p-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">What's Included</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">What&apos;s Included</h3>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                     <Check className="w-4 h-4 text-green-600" />
                   </div>
                   <span className="text-sm text-gray-700">Premium quality materials</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                     <Check className="w-4 h-4 text-green-600" />
                   </div>
                   <span className="text-sm text-gray-700">All-day comfort</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                     <Check className="w-4 h-4 text-green-600" />
                   </div>
                   <span className="text-sm text-gray-700">UV protection</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                     <Check className="w-4 h-4 text-green-600" />
                   </div>
                   <span className="text-sm text-gray-700">1-year warranty</span>
@@ -619,7 +618,7 @@ export default function ProductDetailPage() {
 
       {/* Prescription Dialog */}
       <Dialog open={showPrescriptionDialog} onOpenChange={setShowPrescriptionDialog}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Your Prescription Details</DialogTitle>
             <DialogDescription>
@@ -732,10 +731,12 @@ export default function ProductDetailPage() {
               <div className="mt-2">
                 {prescriptionData.prescriptionFile && (
                   <div className="mb-3 relative">
-                    <img 
+                    <Image 
                       src={prescriptionData.prescriptionFile} 
                       alt="Prescription" 
                       className="w-full h-48 object-contain border rounded-lg"
+                      width={400}
+                      height={400}
                     />
                   </div>
                 )}
@@ -789,7 +790,7 @@ export default function ProductDetailPage() {
 
       {/* Contact Dialog */}
       <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Enter Your Contact Information</DialogTitle>
             <DialogDescription>

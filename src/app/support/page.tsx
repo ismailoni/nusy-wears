@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Toaster } from '@/components/ui/sonner';
 import {
   Accordion,
   AccordionContent,
@@ -131,7 +130,6 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Toaster richColors position="top-center" />
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
