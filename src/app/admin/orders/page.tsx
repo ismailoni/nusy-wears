@@ -10,6 +10,7 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { Order, Item } from '@/types/order';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { formatFirestoreTimestamp } from '@/lib/utils';
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -105,17 +106,14 @@ export default function OrdersPage() {
     paid: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
 };
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-2xl p-8 max-w-md text-center shadow-lg">
-          <div className="w-16 h-16 border-4 border-[#1d4e89] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Loading Orders...</h2>
-          <p className="text-gray-600">Please wait while we fetch your orders.</p>
-        </div>
-      </div>
-    );
-  }
+   if (loading) {
+     return (
+       <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-white to-gray-50">
+         <Loader className="w-12 h-12 animate-spin text-[#1d4e89] mb-4" />
+         <p className="text-gray-600 font-medium">Loading Orders...</p>
+       </div>
+     );
+   }
 
   if (!authenticated) {
     return null;
@@ -272,7 +270,7 @@ export default function OrdersPage() {
                         </td>
                         <td className="py-4 px-6">
                           <p className="text-sm text-gray-700">
-                            {new Date(order.createdAt).toLocaleDateString('en-NG')}
+                            {formatFirestoreTimestamp(order.createdAt, 'en-NG')}
                           </p>
                         </td>
                         <td className="py-4 px-6">
@@ -345,7 +343,7 @@ export default function OrdersPage() {
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Order Date</p>
                         <p className="text-sm font-medium text-gray-900">
-                            {new Date(selectedOrder.createdAt).toLocaleDateString('en-NG')}
+                            {formatFirestoreTimestamp(selectedOrder.createdAt, 'en-NG')}
                         </p>
                       </div>
                       <div>
