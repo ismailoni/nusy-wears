@@ -56,7 +56,7 @@ export default function Home() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-white via-blue-50/30 to-white overflow-hidden">
+      <section className="relative bg-linear-to-br from-white via-blue-50/30 to-white overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#1d4e89]/5 rounded-full blur-3xl" />
@@ -67,14 +67,14 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center py-12 sm:py-16 lg:py-24">
             {/* Left Content */}
             <div className="px-4 sm:px-6 lg:px-8 order-2 lg:order-1 space-y-6 sm:space-y-8">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-blue-100 px-4 sm:px-5 py-2 rounded-full shadow-sm animate-in fade-in slide-in-from-bottom-3 duration-700">
+              <div className="inline-flex items-center gap-2 bg-linear-to-rrom-blue-50 to-blue-100 px-4 sm:px-5 py-2 rounded-full shadow-sm animate-in fade-in slide-in-from-bottom-3 duration-700">
                 <Star className="w-4 h-4 text-[#1d4e89] fill-[#1d4e89]" />
                 <span className="text-xs font-semibold text-[#1d4e89] uppercase tracking-wider">Premium Quality Eyewear</span>
               </div>
               
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-tight animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 See the World <br />
-                <span className="bg-gradient-to-r from-[#1d4e89] to-[#2d6bb3] bg-clip-text text-transparent">Through Style</span>
+                <span className="bg-linear-to-r from-[#1d4e89] to-[#2d6bb3] bg-clip-text text-transparent">Through Style</span>
               </h1>
               
               <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl animate-in fade-in slide-in-from-bottom-5 duration-1000">
@@ -85,10 +85,10 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-6 duration-1000">
                 <Link
                   href="/shop"
-                  className="group px-8 py-4 bg-gradient-to-r from-[#1d4e89] to-[#15396b] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 text-center relative overflow-hidden"
+                  className="group px-8 py-4 bg-linear-to-r from-[#1d4e89] to-[#15396b] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 text-center relative overflow-hidden"
                 >
                   <span className="relative z-10">Shop Collection</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#15396b] to-[#0d2548] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  <div className="absolute inset-0 bg-linear-to-r from-[#15396b] to-[#0d2548] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                 </Link>
                 <Link
                   href="/track"
@@ -132,21 +132,23 @@ export default function Home() {
 
             {/* Right Image */}
             <div className="relative px-4 sm:px-6 lg:px-8 order-1 lg:order-2 animate-in fade-in zoom-in-95 duration-1000">
-              <div className="relative aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl ring-1 ring-gray-900/10">
+              <div className="relative aspect-4/3 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl ring-1 ring-gray-900/10">
                 <Image
                   src="https://images.unsplash.com/photo-1755519024831-6833a37098ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxleWVnbGFzc2VzJTIwZmFzaGlvbiUyMG1vZGVybnxlbnwxfHx8fDE3NjgyMTY2MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080"
                   alt="Premium Eyewear"
                   className="w-full h-full object-cover"
+                  width={400}
+                  height={300}
                 />
                 
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#1d4e89]/30 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-tr from-[#1d4e89]/30 via-transparent to-transparent" />
               </div>
               
               {/* Floating Card */}
               <div className="hidden sm:block absolute -bottom-6 -left-6 bg-white rounded-2xl p-6 shadow-2xl border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1d4e89] to-[#2d6bb3] flex items-center justify-center text-white shadow-lg">
+                  <div className="w-14 h-14 rounded-xl bg-linear-to-br from-[#1d4e89] to-[#2d6bb3] flex items-center justify-center text-white shadow-lg">
                     <Package className="w-7 h-7" />
                   </div>
                   <div>
@@ -163,7 +165,7 @@ export default function Home() {
       
 
       {/* Featured Frames Section */}
-      <section className="py-16 sm:py-20 bg-gradient-to-b from-white to-gray-50">
+      <section className="py-16 sm:py-20 bg-linear-to-b from-white to-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-16">
             <div className="inline-block mb-4">
@@ -210,13 +212,15 @@ export default function Home() {
                   className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-2xl hover:border-[#1d4e89]/20 transition-all duration-300 animate-in fade-in zoom-in-95"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50">
+                  <div className="relative aspect-square overflow-hidden bg-linear-to-br from-gray-100 to-gray-50">
                     <Image
                       src={product.image}
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      width={400}
+                      height={400}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div className="absolute bottom-4 left-0 right-0 flex justify-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                         <div className="bg-white text-[#1d4e89] px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg">
                           <Eye className="w-4 h-4" />
@@ -231,7 +235,7 @@ export default function Home() {
                     </h3>
                     <p className="text-sm text-gray-500 mb-4 line-clamp-2 leading-relaxed">{product.description}</p>
                     <div className="flex items-center justify-between">
-                      <p className="text-xl font-bold bg-gradient-to-r from-[#1d4e89] to-[#2d6bb3] bg-clip-text text-transparent">
+                      <p className="text-xl font-bold bg-linear-to-r from-[#1d4e89] to-[#2d6bb3] bg-clip-text text-transparent">
                         ₦{product.price.toLocaleString()}
                       </p>
                       <div className="flex items-center gap-1.5 bg-yellow-50 px-2.5 py-1 rounded-full">
@@ -248,7 +252,7 @@ export default function Home() {
           <div className="text-center mt-12 sm:mt-16">
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#1d4e89] to-[#15396b] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-[#1d4e89] to-[#15396b] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200"
             >
               <span>View All Products</span>
               <Eye className="w-5 h-5" />
@@ -258,7 +262,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative bg-gradient-to-br from-[#1d4e89] via-[#1a4580] to-[#15396b] text-white py-16 sm:py-20 overflow-hidden">
+      <section className="relative bg-linear-to-br from-[#1d4e89] via-[#1a4580] to-[#15396b] text-white py-16 sm:py-20 overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
