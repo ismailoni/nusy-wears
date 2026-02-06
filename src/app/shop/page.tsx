@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '@/firebase/config';
-import { Product } from '@/data/products';
+import { Product } from '@/types/products';
 import { useCart } from '@/context/CartContext';
 import { Loader, ShoppingCart, Eye, Star, Check } from 'lucide-react';
 import Navigation from '@/components/NavBar';
