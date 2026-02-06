@@ -280,7 +280,7 @@ export default function AddProductPage() {
               <div className="border-2 border-dashed rounded px-4 py-6 text-center">
                 {imagePreview ? (
                   <div>
-                    <Image src={imagePreview} alt="Preview" className="w-32 h-32 object-cover mx-auto mb-2" />
+                    <Image src={imagePreview} alt="Preview" className="w-32 h-32 object-cover mx-auto mb-2" width={128} height={128} />
                     <p className="text-sm text-gray-600 mb-2">Image uploaded successfully</p>
                   </div>
                 ) : null}
