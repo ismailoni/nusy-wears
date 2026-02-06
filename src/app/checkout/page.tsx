@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Trash2, Check, Lock, Download, Home } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { lensOptions } from '@/data/products';
+import { lensOptions } from '@/types/products';
 import { PaystackModal } from '@/components/PaystackModal';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
