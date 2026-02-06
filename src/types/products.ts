@@ -3,7 +3,8 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  image: string;
+  image: string; // Main image for listing
+  images?: string[];
   video?: string;
   category: string;
   material: string;

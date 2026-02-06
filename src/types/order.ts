@@ -14,7 +14,7 @@ export interface Order {
   paymentMethod: string;
   paymentReference: string;
   shippingFee: number;
-  createdAt: Date;
+  createdAt: string;
   items: Item[];
 }
 
