@@ -15,8 +15,7 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
         pathname: '/**',
       },
-    ],
-    domains: ['res.cloudinary.com', 'images.unsplash.com'], // Add any other domains if needed
+    ]
   },
 };
 
