@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Eye, Edit, ExternalLink } from 'lucide-react';
+import { Eye, Edit, ExternalLink, Loader } from 'lucide-react';
 import { collection, query, orderBy, getDocs, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { customizedOrder } from '@/types/order';
+import Link from 'next/link';
 
 
 
@@ -153,19 +154,32 @@ export default function AdminCustomizedOrdersPage() {
     return <span className={`px-2 py-1 rounded-full text-xs font-medium ${badge.className}`}>{badge.text}</span>;
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading orders...</div>
-      </div>
-    );
-  }
+   if (loading) {
+     return (
+       <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-white to-gray-50">
+         <Loader className="w-12 h-12 animate-spin text-[#1d4e89] mb-4" />
+         <p className="text-gray-600 font-medium">Loading Customized Orders...</p>
+       </div>
+     );
+   }
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">No customized lens orders yet</p>
-      </div>
+        <div className="text-center py-12 px-6 mt-[30vh]">
+          <div className="mb-4">
+            <Eye className="w-16 h-16 text-blue-600 mx-auto" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Customized Orders Yet</h3>
+          <p className="text-gray-500 text-sm max-w-xs mx-auto">
+            There are no customized lens orders at the moment. New orders will appear here.
+          </p>
+           <Button className="mt-2" variant='link'>
+          <Link href="/admin/dashboard" className="text-blue-600 hover:text-blue-700">
+            ← Back to Dashboard
+          </Link>
+        </Button>
+
+        </div>
     );
   }
 
