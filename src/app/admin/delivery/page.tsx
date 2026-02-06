@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, Truck, LogOut } from 'lucide-react';
+import { Package, Truck, LogOut, Box, CheckCircle, Loader } from 'lucide-react';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/firebase/config';
 import { collection, getDocs, query, updateDoc, doc, orderBy } from 'firebase/firestore';
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { formatFirestoreTimestamp } from '@/lib/utils';
 
 export default function DeliveryPage() {
   const router = useRouter();
@@ -41,8 +42,10 @@ export default function DeliveryPage() {
   useEffect(() => {
       const fetchOrders = async () => {
     try {
-      const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc')) && query(collection(db, 'customizedOrders'), orderBy('submittedAt', 'desc'));
-      const snapshot = await getDocs(ordersQuery);
+      const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+      const customizedOrdersQuery = query(collection(db, 'customizedOrders'), orderBy('submittedAt', 'desc'));
+      const [ordersSnapshot, customizedSnapshot] = await Promise.all([getDocs(ordersQuery), getDocs(customizedOrdersQuery)]);
+      const snapshot = { docs: [...ordersSnapshot.docs, ...customizedSnapshot.docs] };
       const ordersData = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -69,7 +72,7 @@ export default function DeliveryPage() {
       });
       
       setOrders(ordersData);
-      setActiveDeliveries(ordersData.filter(o => ['processing', 'shipped'].includes(o.deliveryStatus)));
+      setActiveDeliveries(ordersData.filter(o => ['pending', 'processing', 'in transit', 'delivered'].includes(o.deliveryStatus)));
     } catch (error) {
       console.error('Error fetching orders:', error);
     }
@@ -101,7 +104,7 @@ export default function DeliveryPage() {
       );
       
       setOrders(updatedOrders);
-      setActiveDeliveries(updatedOrders.filter(o => ['processing', 'shipped'].includes(o.deliveryStatus)));
+      setActiveDeliveries(updatedOrders.filter(o => ['pending', 'processing', 'in transit', 'delivered'].includes(o.deliveryStatus)));
       
       if (selectedOrder?.id === id) {
         setSelectedOrder({ ...selectedOrder, deliveryStatus: newStatus });
@@ -119,14 +122,19 @@ export default function DeliveryPage() {
   const statusColors: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-700',
     processing: 'bg-blue-100 text-blue-700',
-    shipped: 'bg-purple-100 text-purple-700',
+    "in transit": 'bg-purple-100 text-purple-700',
     delivered: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700'
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
+     return (
+       <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-white to-gray-50">
+         <Loader className="w-12 h-12 animate-spin text-[#1d4e89] mb-4" />
+         <p className="text-gray-600 font-medium">Loading Orders...</p>
+       </div>
+     );
+   }
 
   if (!authenticated) {
     return null;
@@ -165,33 +173,44 @@ export default function DeliveryPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Pending Shipment</p>
                   <p className="text-2xl font-semibold text-gray-900">
+                    {orders.filter(o => o.deliveryStatus === 'pending').length}
+                  </p>
+                </div>
+                <Box className="w-8 h-8 text-orange-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Processing</p>
+                  <p className="text-2xl font-semibold text-gray-900">
                     {orders.filter(o => o.deliveryStatus === 'processing').length}
                   </p>
                 </div>
-                <Package className="w-8 h-8 text-orange-600" />
+                <Package className="w-8 h-8 text-blue-600" />
               </div>
-            </div>
+             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">In Transit</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {orders.filter(o => o.deliveryStatus === 'shipped').length}
+                    {orders.filter(o => o.deliveryStatus === 'in transit').length}
                   </p>
                 </div>
-                <Truck className="w-8 h-8 text-blue-600" />
+                <Truck className="w-8 h-8 text-purple-600" />
               </div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Delivered</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {orders.filter(o => o.deliveryStatus === 'delivered').length}
+                  {orders.filter(o => o.deliveryStatus === 'delivered').length}
                   </p>
                 </div>
-                <Truck className="w-8 h-8 text-green-600" />
-              </div>
+                <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
             </div>
           </div>
 
@@ -217,7 +236,7 @@ export default function DeliveryPage() {
                       <td className="py-4 px-6">
                         <p className="text-sm font-medium text-gray-900">{order.orderId}</p>
                         <p className="text-xs text-gray-500">
-                            {new Date(order.createdAt).toLocaleDateString('en-NG')}
+                            {formatFirestoreTimestamp(order.createdAt, 'en-NG')}
                         </p>
                       </td>
                       <td className="py-4 px-6">
@@ -281,7 +300,7 @@ export default function DeliveryPage() {
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="in transit">In Transit</SelectItem>
                         <SelectItem value="delivered">Delivered</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
