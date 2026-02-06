@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Package, Star, TrendingUp, Eye, Loader } from 'lucide-react';
-import { collection, getDocs, query, limit } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import Navigation from '@/components/NavBar';
-import { Product } from '@/data/products';
+import { Product } from '@/types/products';
 
 export default function Home() {
   const categories = ['All', 'Male', 'Female', 'Sunshades'];
@@ -21,7 +21,7 @@ export default function Home() {
       try {
         const productsQuery = query(
           collection(db, 'products'),
-          limit(6)
+          where('featured', '==', true)
         );
         const snapshot = await getDocs(productsQuery);
         const items = snapshot.docs.map(doc => ({
