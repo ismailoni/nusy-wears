@@ -3,17 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingCart, Check, ChevronDown, Info, Upload, FileText, Eye, MessageCircle } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Check, ChevronDown, Info, Upload, FileText, Eye, MessageCircle, Loader } from 'lucide-react';
 import { doc, getDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { toast } from 'sonner';
-import { Product, lensOptions, lensCoatings } from '@/data/products';
+import { Product, lensOptions, lensCoatings } from '@/types/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useCart } from '@/context/CartContext';
 import Navigation from '@/components/NavBar';
 import Image from 'next/image';
@@ -76,15 +77,14 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Loading product...</p>
-        </div>
-      </div>
-    );
-  }
+   if (loading) {
+     return (
+       <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-white to-gray-50">
+         <Loader className="w-12 h-12 animate-spin text-[#1d4e89] mb-4" />
+         <p className="text-gray-600 font-medium">Loading Product...</p>
+       </div>
+     );
+   }
 
   if (!product) {
     return (
@@ -112,6 +112,7 @@ export default function ProductDetailPage() {
   }
   
   const totalPrice = product.price + lensPrice;
+  const productImages = product.images?.length ? product.images : [product.image];
 
   const handleOpenPrescriptionDialog = () => {
     setShowPrescriptionDialog(true);
@@ -295,17 +296,31 @@ export default function ProductDetailPage() {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column - Media */}
           <div className="space-y-4">
-            {/* Product Image */}
+            {/* Product Images */}
             <div className="bg-white rounded-2xl p-6 lg:p-8">
-              <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                  width={400}
-                  height={400}
-                />
-              </div>
+              <Carousel className="w-full" opts={{ align: 'start' }}>
+                <CarouselContent>
+                  {productImages.map((imageUrl, index) => (
+                    <CarouselItem key={`${imageUrl}-${index}`}>
+                      <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
+                        <Image
+                          src={imageUrl}
+                          alt={`${product.name} - ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          width={600}
+                          height={600}
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {productImages.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-2" />
+                    <CarouselNext className="right-2" />
+                  </>
+                )}
+              </Carousel>
             </div>
             
             {/* Video section */}
