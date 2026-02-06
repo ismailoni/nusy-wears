@@ -10,37 +10,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { customizedOrder } from '@/types/order';
 
-interface Order {
-  id: string;
-  productName: string;
-  productImage: string;
-  framePrice: number;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  lensType: string;
-  lensCoating: string;
-  prescriptionData?: {
-    rightEye?: { sphere?: string; cylinder?: string; axis?: string };
-    leftEye?: { sphere?: string; cylinder?: string; axis?: string };
-    pd?: string;
-    additionalNotes?: string;
-  };
-  prescriptionImageUrl?: string;
-  estimatedLensPrice: number;
-  finalLensPrice?: number;
-  totalPrice?: number;
-  status: string;
-  checkoutLink?: string;
-  submittedAt: string;
-  quotedAt?: string;
-}
+
 
 export default function AdminCustomizedOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<customizedOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<customizedOrder | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showPricingDialog, setShowPricingDialog] = useState(false);
   const [finalLensPrice, setFinalLensPrice] = useState('');
@@ -65,7 +42,7 @@ export default function AdminCustomizedOrdersPage() {
         ...doc.data(),
         submittedAt: doc.data().submittedAt?.toDate?.()?.toISOString() || doc.data().submittedAt,
         quotedAt: doc.data().quotedAt?.toDate?.()?.toISOString() || doc.data().quotedAt,
-      })) as Order[];
+      })) as customizedOrder[];
       setOrders(ordersData);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -74,12 +51,12 @@ export default function AdminCustomizedOrdersPage() {
     }
   };
 
-  const handleViewDetails = (order: Order) => {
+  const handleViewDetails = (order: customizedOrder) => {
     setSelectedOrder(order);
     setShowDetailsDialog(true);
   };
 
-  const handleSetPrice = (order: Order) => {
+  const handleSetPrice = (order: customizedOrder) => {
     setSelectedOrder(order);
     setFinalLensPrice(order.finalLensPrice?.toString() || order.estimatedLensPrice.toString());
     setAdminNotes('');
@@ -216,9 +193,9 @@ export default function AdminCustomizedOrdersPage() {
                   </td>
                   <td className="px-4 py-4">
                     <div className="text-sm">
-                      <div className="font-medium text-gray-900">{order.customerName}</div>
-                      <div className="text-gray-500">{order.customerPhone}</div>
-                      {order.customerEmail && <div className="text-gray-500 text-xs">{order.customerEmail}</div>}
+                      <div className="font-medium text-gray-900">{order.customerInfo.name}</div>
+                      <div className="text-gray-500">{order.customerInfo.phone}</div>
+                      {order.customerInfo.email && <div className="text-gray-500 text-xs">{order.customerInfo.email}</div>}
                     </div>
                   </td>
                   <td className="px-4 py-4">
@@ -249,7 +226,7 @@ export default function AdminCustomizedOrdersPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">{getStatusBadge(order.status)}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">{getStatusBadge(order.paymentStatus)}</td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(order.submittedAt).toLocaleDateString()}
                   </td>
@@ -292,7 +269,7 @@ export default function AdminCustomizedOrdersPage() {
                   <div className="text-sm text-gray-500">Order ID</div>
                   <div className="font-mono font-semibold">{selectedOrder.id}</div>
                 </div>
-                {getStatusBadge(selectedOrder.status)}
+                {getStatusBadge(selectedOrder.paymentStatus)}
               </div>
 
               <div>
@@ -318,16 +295,16 @@ export default function AdminCustomizedOrdersPage() {
                 <div className="space-y-2 p-4 border rounded-lg">
                   <div>
                     <span className="text-sm text-gray-500">Name:</span>
-                    <span className="ml-2 font-medium">{selectedOrder.customerName}</span>
+                    <span className="ml-2 font-medium">{selectedOrder.customerInfo.name}</span>
                   </div>
                   <div>
                     <span className="text-sm text-gray-500">Phone:</span>
-                    <span className="ml-2 font-medium">{selectedOrder.customerPhone}</span>
+                    <span className="ml-2 font-medium">{selectedOrder.customerInfo.phone}</span>
                   </div>
-                  {selectedOrder.customerEmail && (
+                  {selectedOrder.customerInfo.email && (
                     <div>
                       <span className="text-sm text-gray-500">Email:</span>
-                      <span className="ml-2 font-medium">{selectedOrder.customerEmail}</span>
+                      <span className="ml-2 font-medium">{selectedOrder.customerInfo.email}</span>
                     </div>
                   )}
                 </div>
@@ -377,12 +354,12 @@ export default function AdminCustomizedOrdersPage() {
                 </div>
               )}
 
-              {selectedOrder.prescriptionImageUrl && (
+              {selectedOrder.prescriptionData?.prescriptionFile && (
                 <div>
                   <h3 className="font-semibold mb-3">Prescription Image</h3>
                   <div className="border rounded-lg overflow-hidden">
                     <Image
-                      src={selectedOrder.prescriptionImageUrl}
+                      src={selectedOrder.prescriptionData?.prescriptionFile}
                       alt="Prescription"
                       width={700}
                       height={500}
@@ -390,7 +367,7 @@ export default function AdminCustomizedOrdersPage() {
                     />
                   </div>
                   <a
-                    href={selectedOrder.prescriptionImageUrl}
+                    href={selectedOrder.prescriptionData?.prescriptionFile}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 mt-2"
@@ -473,7 +450,7 @@ export default function AdminCustomizedOrdersPage() {
                   />
                   <div>
                     <div className="font-medium">{selectedOrder.productName}</div>
-                    <div className="text-sm text-gray-600">{selectedOrder.customerName}</div>
+                    <div className="text-sm text-gray-600">{selectedOrder.customerInfo.name}</div>
                   </div>
                 </div>
                 <div className="flex justify-between text-sm">
