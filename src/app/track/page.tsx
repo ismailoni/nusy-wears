@@ -14,6 +14,7 @@ import { Order } from '@/types/order';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import NavBar from '@/components/NavBar';
+import { formatFirestoreTimestamp } from '@/lib/utils';
 
 export default function TrackOrderPage() {
   const params = useSearchParams();
@@ -81,7 +82,7 @@ export default function TrackOrderPage() {
         return 'bg-yellow-100 text-yellow-800';
       case 'processing':
         return 'bg-blue-100 text-blue-800';
-      case 'shipped':
+      case 'in transit':
         return 'bg-purple-100 text-purple-800';
       case 'delivered':
         return 'bg-green-100 text-green-800';
@@ -98,7 +99,7 @@ export default function TrackOrderPage() {
         return 1;
       case 'processing':
         return 2;
-      case 'shipped':
+      case 'in transit':
         return 3;
       case 'delivered':
         return 4;
@@ -126,7 +127,7 @@ export default function TrackOrderPage() {
         {/* Inline searching indicator (shows when loading and before results) */}
         {loading && !order && (
           <div className="bg-white rounded-lg p-4 mb-6 border border-gray-100 flex items-center gap-4">
-            <div className="w-8 h-8 border-4 border-[#1d4e89] border-t-transparent rounded-full animate-spin" aria-hidden />
+            <Loader className="w-12 h-12 animate-spin text-[#1d4e89] mb-4" />
             <p className="text-sm text-gray-700">Searching for order{orderNumber ? ` "${orderNumber}"` : ''}...</p>
           </div>
         )}
@@ -177,7 +178,7 @@ export default function TrackOrderPage() {
                   <div>
                     <CardTitle className="text-3xl font-bold text-gray-900">{order.orderId || order.id}</CardTitle>
                     <p className="text-gray-600 mt-2 text-sm">
-                      Ordered on {new Date(order.createdAt).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      Ordered on {formatFirestoreTimestamp(order.createdAt, 'en-NG')}
                     </p>
                   </div>
                   <Badge className={`px-5 py-2.5 text-sm font-bold flex items-center gap-2 whitespace-nowrap ${getStatusColor(order.deliveryStatus)} shadow-sm border-0`}>
@@ -201,7 +202,7 @@ export default function TrackOrderPage() {
                     />
 
                   {/* Steps */}
-                  {['Pending', 'Processing', 'Shipped', 'Delivered'].map((step, index) => {
+                  {['Pending', 'Processing', 'In Transit', 'Delivered'].map((step, index) => {
                     const stepNumber = index + 1;
                     const isActive = getStatusStep(order.deliveryStatus) >= stepNumber;
                     const isCurrent = getStatusStep(order.deliveryStatus) === stepNumber;
@@ -219,7 +220,7 @@ export default function TrackOrderPage() {
                         </div>
                         <p
                           className={`text-xs mt-3 font-semibold text-center transition-colors ${
-                            isCurrent ? 'text-[#1d4e89]' : isActive ? 'text-gray-900' : 'text-gray-400'
+                            isCurrent ? 'text-[#1d4e89]' : isActive ? 'text-blue-900' : 'text-gray-400'
                           }`}
                         >
                           {step}
