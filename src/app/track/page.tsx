@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { Package, Search, Loader, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/config';
@@ -16,7 +16,7 @@ import Image from 'next/image';
 import NavBar from '@/components/NavBar';
 import { formatFirestoreTimestamp } from '@/lib/utils';
 
-export default function TrackOrderPage() {
+function TrackOrderContent() {
   const params = useSearchParams();
   const [orderNumber, setOrderNumber] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
@@ -317,5 +317,21 @@ export default function TrackOrderPage() {
         )}
       </main>
     </div>  
+  );
+}
+
+export default function TrackOrderPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-linear-to-b from-white via-gray-50 to-white">
+        <NavBar />
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
+          <Loader className="w-12 h-12 animate-spin text-[#1d4e89] mb-4" />
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    }>
+      <TrackOrderContent />
+    </Suspense>
   );
 }    
