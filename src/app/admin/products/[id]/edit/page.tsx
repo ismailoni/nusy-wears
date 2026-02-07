@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
 import { frameColors, lensOptions } from '@/types/products';
-import { Upload, LogOut, ArrowLeft, Loader } from 'lucide-react';
+import { Upload, LogOut, ArrowLeft, Loader, ImagePlus } from 'lucide-react';
 import Link from 'next/link';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import Image from 'next/image';
@@ -266,22 +266,20 @@ export default function EditProductPage() {
       </nav>
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <Link
-            href="/admin/dashboard"
-            className="text-blue-600 hover:text-blue-700"
-          >
-            ← Back to Dashboard
-          </Link>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">Update Product Details</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Edit product information, media, and pricing details.
+          </p>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white rounded-xl shadow-lg p-8">
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 text-red-800 px-6 py-4 rounded-lg mb-6 flex items-start gap-3">
+            <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg mb-6 flex items-start gap-3">
               <svg
-                className="w-5 h-5 mt-0.5 shrink-0"
+                className="w-5 h-5 mt-0.5 shrink-0 text-red-600"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -301,7 +299,7 @@ export default function EditProductPage() {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information Section */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2">
                 Basic Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -450,7 +448,7 @@ export default function EditProductPage() {
 
             {/* Description Section */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2">
                 Product Description
               </h3>
               <div>
@@ -475,7 +473,7 @@ export default function EditProductPage() {
 
             {/* Media Upload Section */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2">
                 Product Media
               </h3>
 
@@ -484,16 +482,16 @@ export default function EditProductPage() {
                 <Label className="block text-sm font-medium text-gray-700 mb-3">
                   Product Image <span className="text-red-500">*</span>
                 </Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[#1d4e89] transition-colors bg-gray-50">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#1d4e89] hover:bg-blue-50 transition-all bg-gray-50">
                   {formData.images.length > 0 ? (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {formData.images.map((img, index) => (
                           <div key={img} className="relative group">
                             <Image
                               src={img}
                               alt={`Product image ${index + 1}`}
-                              className="w-full h-28 object-cover rounded-lg shadow-sm"
+                              className="w-full h-28 object-cover rounded-lg shadow-sm border border-gray-200"
                               width={160}
                               height={112}
                             />
@@ -507,7 +505,7 @@ export default function EditProductPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleSetMainImage(index)}
-                                  className="text-xs bg-white text-gray-900 px-2 py-1 rounded"
+                                  className="text-xs bg-white text-gray-900 px-3 py-1.5 rounded"
                                 >
                                   Set main
                                 </button>
@@ -515,7 +513,7 @@ export default function EditProductPage() {
                               <button
                                 type="button"
                                 onClick={() => handleRemoveImage(index)}
-                                className="text-xs bg-red-600 text-white px-2 py-1 rounded"
+                                className="text-xs bg-red-600 text-white px-3 py-1.5 rounded"
                               >
                                 Remove
                               </button>
@@ -524,14 +522,14 @@ export default function EditProductPage() {
                         ))}
                       </div>
                       <p className="text-sm font-medium text-green-600">
-                        Current product images
+                        ✓ {formData.images.length} image{formData.images.length !== 1 ? 's' : ''} uploaded
                       </p>
                       <Label
                         htmlFor="image-input"
                         className="cursor-pointer inline-block"
                       >
                         <span className="text-sm text-[#1d4e89] hover:text-[#15396b] font-medium underline">
-                          Add more images
+                          + Add more images
                         </span>
                       </Label>
                     </div>
@@ -540,7 +538,7 @@ export default function EditProductPage() {
                       htmlFor="image-input"
                       className="cursor-pointer block"
                     >
-                      <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <ImagePlus className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                       <p className="text-base font-medium text-gray-700 mb-1">
                         {uploadingImage
                           ? "Uploading images..."
@@ -567,18 +565,18 @@ export default function EditProductPage() {
               <div>
                 <Label className="block text-sm font-medium text-gray-700 mb-3">
                   Product Video{" "}
-                  <span className="text-gray-400 text-xs">(Optional)</span>
+                  <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                 </Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[#1d4e89] transition-colors bg-gray-50">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#1d4e89] hover:bg-blue-50 transition-all bg-gray-50">
                   {videoPreview ? (
                     <div className="space-y-4">
-                      <div className="relative inline-block">
+                      <div className="relative inline-block rounded-lg overflow-hidden shadow-md">
                         <video
                           src={videoPreview}
-                          className="w-48 h-48 object-cover mx-auto rounded-lg shadow-md"
+                          className="w-48 h-48 object-cover"
                           controls
                         />
-                        <div className="absolute top-2 right-2 bg-green-500 text-white p-2 rounded-full shadow-lg">
+                        <div className="absolute top-3 right-3 bg-green-500 text-white p-2 rounded-full shadow-lg">
                           <svg
                             className="w-4 h-4"
                             fill="currentColor"
@@ -592,9 +590,7 @@ export default function EditProductPage() {
                           </svg>
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-green-600">
-                        Current product video
-                      </p>
+                      <p className="text-sm font-medium text-green-600">✓ Video uploaded successfully</p>
                       <Label
                         htmlFor="video-input"
                         className="cursor-pointer inline-block"
@@ -633,7 +629,7 @@ export default function EditProductPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 pt-6 border-t">
+            <div className="flex gap-4 pt-6 border-t border-gray-200">
               <Button
                 type="submit"
                 disabled={
