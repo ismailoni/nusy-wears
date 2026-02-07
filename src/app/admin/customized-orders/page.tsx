@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { customizedOrder } from '@/types/order';
 import Link from 'next/link';
+import { formatFirestoreTimestamp } from '@/lib/utils';
+import { toast } from 'sonner';
 
 
 
@@ -61,13 +63,13 @@ export default function AdminCustomizedOrdersPage() {
     setSelectedOrder(order);
     setFinalLensPrice(order.finalLensPrice?.toString() || order.estimatedLensPrice.toString());
     setAdminNotes('');
-    setGeneratedLink('');
+    setGeneratedLink(order.checkoutLink || '');
     setShowPricingDialog(true);
   };
 
   const handleSubmitPrice = async () => {
     if (!selectedOrder || !finalLensPrice) {
-      alert('Please enter a valid lens price');
+      toast.error('Please enter a valid lens price');
       return;
     }
 
@@ -75,24 +77,48 @@ export default function AdminCustomizedOrdersPage() {
 
     try {
       const lensPrice = parseFloat(finalLensPrice);
-      const totalPrice = selectedOrder.framePrice + lensPrice;
-      const checkoutLink = `${window.location.origin}/customized-checkout/${selectedOrder.id}`;
+      const totalAmount = selectedOrder.framePrice + lensPrice;
 
       await updateDoc(doc(db, 'customizedOrders', selectedOrder.id), {
         finalLensPrice: lensPrice,
-        totalPrice,
-        status: 'quoted',
-        checkoutLink,
+        totalAmount,
+        paymentStatus: 'quoted',
         adminNotes: adminNotes || null,
         quotedAt: Timestamp.now(),
       });
 
-      setGeneratedLink(checkoutLink);
-      await fetchOrders();
-      alert('Price set successfully! Checkout link generated.');
+      toast.success('Price quoted successfully!');
+      fetchOrders();
+      setSelectedOrder({ ...selectedOrder, finalLensPrice: lensPrice, totalAmount });
     } catch (error) {
       console.error('Error setting price:', error);
-      alert('Failed to set price. Please try again.');
+      toast.error('Failed to set price. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGenerateLink = async () => {
+    if (!selectedOrder || !selectedOrder.finalLensPrice) {
+      toast.error('Please set the final price first');
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const checkoutLink = `${window.location.origin}/customized-checkout/${selectedOrder.id}`;
+
+      await updateDoc(doc(db, 'customizedOrders', selectedOrder.id), {
+        checkoutLink,
+      });
+
+      setGeneratedLink(checkoutLink);
+      await fetchOrders();
+      toast.success('Checkout link generated successfully!');
+    } catch (error) {
+      console.error('Error generating link:', error);
+      toast.error('Failed to generate link. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -103,7 +129,7 @@ export default function AdminCustomizedOrdersPage() {
       navigator.clipboard
         .writeText(text)
         .then(() => {
-          alert('Link copied to clipboard!');
+          toast.success('Link copied to clipboard!');
         })
         .catch(() => {
           fallbackCopyToClipboard(text);
@@ -126,13 +152,13 @@ export default function AdminCustomizedOrdersPage() {
     try {
       const successful = document.execCommand('copy');
       if (successful) {
-        alert('Link copied to clipboard!');
+        toast.success('Link copied to clipboard!');
       } else {
-        alert('Failed to copy link. Please copy manually.');
+        toast.error('Failed to copy link. Please copy manually.');
       }
     } catch (error) {
       console.error('Fallback copy failed:', error);
-      alert('Failed to copy link. Please copy manually.');
+      toast.error('Failed to copy link. Please copy manually.');
     }
 
     document.body.removeChild(textArea);
@@ -142,11 +168,7 @@ export default function AdminCustomizedOrdersPage() {
     const badges: Record<string, { text: string; className: string }> = {
       'pending-quote': { text: 'Pending Quote', className: 'bg-yellow-100 text-yellow-800' },
       quoted: { text: 'Quoted', className: 'bg-blue-100 text-blue-800' },
-      confirmed: { text: 'Confirmed', className: 'bg-green-100 text-green-800' },
-      processing: { text: 'Processing', className: 'bg-purple-100 text-purple-800' },
-      shipped: { text: 'Shipped', className: 'bg-indigo-100 text-indigo-800' },
-      delivered: { text: 'Delivered', className: 'bg-gray-100 text-gray-800' },
-      cancelled: { text: 'Cancelled', className: 'bg-red-100 text-red-800' },
+      paid: { text: 'Paid', className: 'bg-green-100 text-green-800' },
     };
 
     const badge = badges[status] || { text: status, className: 'bg-gray-100 text-gray-800' };
@@ -203,13 +225,13 @@ export default function AdminCustomizedOrdersPage() {
               {orders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm font-mono text-gray-900">{order.id}</div>
+                    <div className="text-sm font-mono text-gray-900">{order.orderId}</div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="text-sm">
-                      <div className="font-medium text-gray-900">{order.customerInfo.name}</div>
-                      <div className="text-gray-500">{order.customerInfo.phone}</div>
-                      {order.customerInfo.email && <div className="text-gray-500 text-xs">{order.customerInfo.email}</div>}
+                      <div className="font-medium text-gray-900">{order.customer.name}</div>
+                      <div className="text-gray-500">{order.customer.phone}</div>
+                      <div className="text-gray-500 text-xs">{order.customer.email}</div>
                     </div>
                   </td>
                   <td className="px-4 py-4">
@@ -235,14 +257,14 @@ export default function AdminCustomizedOrdersPage() {
                           <span className="text-yellow-600">₦{order.estimatedLensPrice.toLocaleString()} (Est.)</span>
                         )}
                       </div>
-                      {order.totalPrice && (
-                        <div className="font-semibold text-[#1d4e89] mt-1">Total: ₦{order.totalPrice.toLocaleString()}</div>
+                      {order.totalAmount && (
+                        <div className="font-semibold text-[#1d4e89] mt-1">Total: ₦{order.totalAmount.toLocaleString()}</div>
                       )}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">{getStatusBadge(order.paymentStatus)}</td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(order.submittedAt).toLocaleDateString()}
+                    {formatFirestoreTimestamp(order.submittedAt, 'en-NG')}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
@@ -309,16 +331,16 @@ export default function AdminCustomizedOrdersPage() {
                 <div className="space-y-2 p-4 border rounded-lg">
                   <div>
                     <span className="text-sm text-gray-500">Name:</span>
-                    <span className="ml-2 font-medium">{selectedOrder.customerInfo.name}</span>
+                    <span className="ml-2 font-medium">{selectedOrder.customer.name}</span>
                   </div>
                   <div>
                     <span className="text-sm text-gray-500">Phone:</span>
-                    <span className="ml-2 font-medium">{selectedOrder.customerInfo.phone}</span>
+                    <span className="ml-2 font-medium">{selectedOrder.customer.phone}</span>
                   </div>
-                  {selectedOrder.customerInfo.email && (
+                  {selectedOrder.customer.email && (
                     <div>
                       <span className="text-sm text-gray-500">Email:</span>
-                      <span className="ml-2 font-medium">{selectedOrder.customerInfo.email}</span>
+                      <span className="ml-2 font-medium">{selectedOrder.customer.email}</span>
                     </div>
                   )}
                 </div>
@@ -408,10 +430,10 @@ export default function AdminCustomizedOrdersPage() {
                       {!selectedOrder.finalLensPrice && ' (Not set)'}
                     </span>
                   </div>
-                  {selectedOrder.totalPrice && (
+                  {selectedOrder.totalAmount && (
                     <div className="flex justify-between pt-2 border-t border-blue-200">
                       <span className="font-semibold text-gray-900">Total:</span>
-                      <span className="font-bold text-[#1d4e89]">₦{selectedOrder.totalPrice.toLocaleString()}</span>
+                      <span className="font-bold text-[#1d4e89]">₦{selectedOrder.totalAmount.toLocaleString()}</span>
                     </div>
                   )}
                 </div>
@@ -464,7 +486,7 @@ export default function AdminCustomizedOrdersPage() {
                   />
                   <div>
                     <div className="font-medium">{selectedOrder.productName}</div>
-                    <div className="text-sm text-gray-600">{selectedOrder.customerInfo.name}</div>
+                    <div className="text-sm text-gray-600">{selectedOrder.customer?.name || 'N/A'}</div>
                   </div>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -541,14 +563,25 @@ export default function AdminCustomizedOrdersPage() {
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="button"
-                  onClick={handleSubmitPrice}
-                  className="flex-1 bg-[#1d4e89] hover:bg-[#15396b]"
-                  disabled={submitting || !finalLensPrice}
-                >
-                  {submitting ? 'Generating...' : 'Generate Checkout Link'}
-                </Button>
+                {!selectedOrder.finalLensPrice ? (
+                  <Button
+                    type="button"
+                    onClick={handleSubmitPrice}
+                    className="flex-1 bg-[#1d4e89] hover:bg-[#15396b]"
+                    disabled={submitting || !finalLensPrice}
+                  >
+                    {submitting ? 'Quoting...' : 'Quote Price'}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleGenerateLink}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    disabled={submitting || generatedLink !== ''}
+                  >
+                    {submitting ? 'Generating...' : generatedLink ? 'Link Generated' : 'Generate Checkout Link'}
+                  </Button>
+                )}
               </div>
             </div>
           )}
