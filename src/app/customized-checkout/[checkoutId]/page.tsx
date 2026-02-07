@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { customizedOrder } from '@/types/order';
 import { PaystackModal } from '@/components/PaystackModal';
 import { toast } from 'sonner';
+import { formatFirestoreTimestamp } from '@/lib/utils';
 
 
 
@@ -563,7 +564,7 @@ export default function CustomizedCheckoutPage() {
               <div className="flex justify-between text-gray-600">
                 <span>Quote Date:</span>
                 <span className="font-medium text-gray-900">
-                  {new Date(order.submittedAt).toLocaleDateString('en-NG')}
+                  {formatFirestoreTimestamp(order.submittedAt, 'en-NG')}
                 </span>
               </div>
             </div>
