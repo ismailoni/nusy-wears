@@ -3,13 +3,12 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { DollarSign, ShoppingBag, LogOut, Loader } from 'lucide-react';
+import { DollarSign, ShoppingBag, LogOut, Loader, ArrowLeft, Search } from 'lucide-react';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/firebase/config';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { formatFirestoreTimestamp } from '@/lib/utils';
 import { Transaction } from '@/types/transaction';
-import { Input } from '@/components/ui/input';
 
 export default function TransactionsPage() {
   const router = useRouter();
@@ -122,16 +121,25 @@ export default function TransactionsPage() {
       </nav>
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <Link href="/admin/dashboard" className="text-blue-600 hover:text-blue-700">
-            ← Back to Dashboard
+        {/* Navigation Header */}
+        <div className="mb-8 flex items-center gap-3">
+          <Link
+            href="/admin/dashboard"
+            className="inline-flex items-center justify-center p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
+          <div className="h-8 border-l border-gray-200" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+            <p className="text-sm text-gray-600 mt-1">Monitor all payment transactions and revenue</p>
+          </div>
         </div>
 
         <div className="space-y-6">
-          {/* Stats Cards */}
+          {/* Summary Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
@@ -140,7 +148,7 @@ export default function TransactionsPage() {
                 <DollarSign className="w-8 h-8 text-green-600" />
               </div>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Completed Orders</p>
@@ -149,7 +157,7 @@ export default function TransactionsPage() {
                 <ShoppingBag className="w-8 h-8 text-blue-600" />
               </div>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Avg Order Value</p>
@@ -162,23 +170,29 @@ export default function TransactionsPage() {
             </div>
           </div>
 
+          {/* Search Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
+            <div className="flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
+              <Search className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by order ID, customer, status..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-sm text-gray-900 placeholder-gray-500"
+              />
+            </div>
+          </div>
+
           {/* Transactions Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100">
             <div className="p-6 border-b border-gray-100">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Transaction History</h2>
-                <Input
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Search by order ID, customer, status"
-                  className="sm:w-80"
-                />
-              </div>
+              <h2 className="text-lg font-bold text-gray-900">Transaction History</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
+                <thead className="bg-gray-50 border-b-2 border-gray-200">
+                  <tr className="hover:bg-gray-50">
                     <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
                     <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
                     <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
@@ -192,11 +206,11 @@ export default function TransactionsPage() {
                   {filteredTransactions.map(transaction => (
                     <tr key={transaction.id} className="hover:bg-gray-50 transition-colors">
                       <td className="py-4 px-6">
-                        <p className="text-sm font-medium text-gray-900">{transaction.orderId}</p>
+                        <p className="text-sm font-semibold text-[#1d4e89]">{transaction.orderId}</p>
                       </td>
                       <td className="py-4 px-6">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{transaction.customerName}</p>
+                          <p className="text-sm font-semibold text-gray-900">{transaction.customerName}</p>
                           <p className="text-xs text-gray-500">{transaction.customerEmail}</p>
                         </div>
                       </td>
@@ -206,26 +220,32 @@ export default function TransactionsPage() {
                         </p>
                       </td>
                       <td className="py-4 px-6">
-                        <p className="text-sm font-medium text-gray-900 text-right">
+                        <p className="text-sm font-bold text-[#1d4e89] text-right">
                           ₦{transaction.amount.toLocaleString()}
                         </p>
                       </td>
                       <td className="py-4 px-6">
-                        <p className="text-sm font-medium text-gray-900 text-right">
+                        <p className="text-sm font-medium text-gray-700 text-right">
                           {transaction.paymentReference}
                         </p>
                       </td>
                       <td className="py-4 px-6">
-                        <p className={`text-sm font-medium text-right ${transaction.status === 'completed' ? 'text-green-600' : transaction.status === 'pending' ? 'text-yellow-600' : 'text-red-600'}`}>
-                          {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                        </p>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold capitalize ${
+                          transaction.status === 'completed' 
+                            ? 'bg-green-100 text-green-700' 
+                            : transaction.status === 'pending' 
+                            ? 'bg-yellow-100 text-yellow-700' 
+                            : 'bg-red-100 text-red-700'
+                        }`}>
+                          {transaction.status}
+                        </span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               {filteredTransactions.length === 0 && (
-                <div className="text-center py-12">
+                <div className="text-center py-16">
                   <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500">No transactions found</p>
                 </div>
