@@ -9,6 +9,7 @@ import { Product } from '@/types/products';
 import { Edit, Trash2, Plus, LogOut, Search, Package, Loader } from 'lucide-react';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function ProductsPage() {
       setProducts(products.filter(p => p.id !== id));
     } catch (err) {
       console.error('Delete error:', err);
-      alert('Failed to delete product');
+      toast.error('Failed to delete product');
     }
   };
 
