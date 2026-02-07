@@ -64,7 +64,7 @@ export default function CheckoutPage() {
 
   const handleProceedToPayment = () => {
     if (!formData.name || !formData.email || !formData.phone || !formData.address || !formData.city || !formData.zipCode) {
-      alert('Please fill in all delivery information');
+      toast.error('Please fill in all delivery information');
       return;
     }
 
