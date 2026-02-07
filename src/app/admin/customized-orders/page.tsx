@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Eye, Edit, ExternalLink, Loader } from 'lucide-react';
+import { Eye, Edit, ExternalLink, Loader, Search, Clock, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
 import { collection, query, orderBy, getDocs, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 export default function AdminCustomizedOrdersPage() {
   const [orders, setOrders] = useState<customizedOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<customizedOrder | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showPricingDialog, setShowPricingDialog] = useState(false);
@@ -185,32 +186,114 @@ export default function AdminCustomizedOrdersPage() {
      );
    }
 
+  const filteredOrders = searchTerm.trim()
+    ? orders.filter(
+        (order) =>
+          order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.customer.phone.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : orders;
+
+  const stats = {
+    pending: orders.filter((o) => o.paymentStatus === 'pending-quote').length,
+    quoted: orders.filter((o) => o.paymentStatus === 'quoted').length,
+    paid: orders.filter((o) => o.paymentStatus === 'paid').length,
+    totalRevenue: orders
+      .filter((o) => o.paymentStatus === 'paid')
+      .reduce((sum, o) => sum + (o.totalAmount ?? 0), 0),
+  };
+
   if (orders.length === 0) {
     return (
-        <div className="text-center py-12 px-6 mt-[30vh]">
-          <div className="mb-4">
-            <Eye className="w-16 h-16 text-blue-600 mx-auto" />
+      <main className="min-h-screen bg-gray-50 p-6">
+        <div className="text-center py-20 px-6">
+          <div className="mb-6">
+            <AlertCircle className="w-20 h-20 text-gray-300 mx-auto" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Customized Orders Yet</h3>
-          <p className="text-gray-500 text-sm max-w-xs mx-auto">
-            There are no customized lens orders at the moment. New orders will appear here.
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">No Customized Orders Yet</h3>
+          <p className="text-gray-600 text-base max-w-md mx-auto mb-8">
+            There are no customized lens orders at the moment. New orders will appear here once customers submit their requests.
           </p>
-           <Button className="mt-2" variant='link'>
-          <Link href="/admin/dashboard" className="text-blue-600 hover:text-blue-700">
-            ← Back to Dashboard
-          </Link>
-        </Button>
-
+          <Button asChild className="bg-[#1d4e89] hover:bg-[#15396b]">
+            <Link href="/admin/dashboard">← Back to Dashboard</Link>
+          </Button>
         </div>
+      </main>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border">
+    <main className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <Button asChild className="bg-[#1d4e89] hover:bg-[#15396b]">
+            <Link href="/admin/dashboard">← Back to Dashboard</Link>
+          </Button>
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Customized Orders</h1>
+          <p className="text-gray-600 mt-1">Manage custom lens orders and generate checkout links</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-medium">Pending Quote</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.pending}</p>
+              </div>
+              <Clock className="w-8 h-8 text-yellow-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-medium">Quoted</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.quoted}</p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-blue-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-medium">Paid</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.paid}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-medium">Total Revenue</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">₦{(stats.totalRevenue / 1000).toFixed(0)}k</p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by order ID, customer name, or phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1d4e89] focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Orders Table */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-linear-to-r from-gray-50 to-gray-100 border-b border-gray-200">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
@@ -222,19 +305,19 @@ export default function AdminCustomizedOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm font-mono text-gray-900">{order.orderId}</div>
+                    <div className="text-sm font-mono font-semibold text-[#1d4e89]">{order.orderId}</div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="text-sm">
-                      <div className="font-medium text-gray-900">{order.customer.name}</div>
-                      <div className="text-gray-500">{order.customer.phone}</div>
-                      <div className="text-gray-500 text-xs">{order.customer.email}</div>
+                      <div className="font-semibold text-gray-900">{order.customer.name}</div>
+                      <div className="text-gray-500 text-sm">{order.customer.phone}</div>
+                      {order.customer.email && <div className="text-gray-400 text-xs">{order.customer.email}</div>}
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-4 mr-2">
                     <div className="flex items-center gap-3">
                       <Image
                         src={order.productImage}
@@ -243,22 +326,28 @@ export default function AdminCustomizedOrdersPage() {
                         height={48}
                         className="w-12 h-12 rounded object-cover"
                       />
-                      <div className="text-sm text-gray-900">{order.productName}</div>
+                      <div className="text-sm font-medium text-gray-900">{order.productName}</div>
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-sm">
-                      <div className="text-gray-700">Frame: ₦{order.framePrice.toLocaleString()}</div>
-                      <div className="text-gray-700">
-                        Lens:{' '}
+                    <div className="text-sm space-y-2">
+                      <div className="flex justify-between text-gray-700">
+                        <span>Frame:</span>
+                        <span className="font-medium">₦{order.framePrice.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Lens:</span>
                         {order.finalLensPrice ? (
-                          `₦${order.finalLensPrice.toLocaleString()}`
+                          <span className="font-medium text-gray-900">₦{order.finalLensPrice.toLocaleString()}</span>
                         ) : (
-                          <span className="text-yellow-600">₦{order.estimatedLensPrice.toLocaleString()} (Est.)</span>
+                          <span className="font-medium text-yellow-600">₦{order.estimatedLensPrice.toLocaleString()} (Est.)</span>
                         )}
                       </div>
                       {order.totalAmount && (
-                        <div className="font-semibold text-[#1d4e89] mt-1">Total: ₦{order.totalAmount.toLocaleString()}</div>
+                        <div className="border-t pt-1 flex justify-between font-semibold text-[#1d4e89]">
+                          <span>Total:</span>
+                          <span>₦{order.totalAmount.toLocaleString()}</span>
+                        </div>
                       )}
                     </div>
                   </td>
@@ -270,17 +359,19 @@ export default function AdminCustomizedOrdersPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleViewDetails(order)}
-                        className="text-blue-600 hover:text-blue-800 p-1"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="View Details"
                       >
-                        <Eye className="w-5 h-5" />
+                        <Eye className="w-4 h-4" />
+                        <span className="hidden sm:inline">View</span>
                       </button>
                       <button
                         onClick={() => handleSetPrice(order)}
-                        className="text-green-600 hover:text-green-800 p-1"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                         title="Set Price"
                       >
-                        <Edit className="w-5 h-5" />
+                        <Edit className="w-4 h-4" />
+                        <span className="hidden sm:inline">Quote</span>
                       </button>
                     </div>
                   </td>
@@ -288,28 +379,33 @@ export default function AdminCustomizedOrdersPage() {
               ))}
             </tbody>
           </table>
+          {filteredOrders.length === 0 && (
+            <div className="text-center py-12">
+              <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 font-medium">No orders found matching your search</p>
+            </div>
+          )}
         </div>
-      </div>
 
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="sm:max-w-175 max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Order Details</DialogTitle>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-2xl">Order Details</DialogTitle>
             <DialogDescription>Complete order information and prescription details</DialogDescription>
           </DialogHeader>
 
           {selectedOrder && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="space-y-5 pt-4">
+              <div className="flex items-center justify-between p-4 bg-linear-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                 <div>
-                  <div className="text-sm text-gray-500">Order ID</div>
-                  <div className="font-mono font-semibold">{selectedOrder.id}</div>
+                  <div className="text-xs text-blue-600 font-medium uppercase tracking-wide">Order ID</div>
+                  <div className="font-mono font-bold text-lg text-[#1d4e89] mt-1">{selectedOrder.id}</div>
                 </div>
                 {getStatusBadge(selectedOrder.paymentStatus)}
               </div>
 
               <div>
-                <h3 className="font-semibold mb-3">Product Information</h3>
+                <h3 className="font-bold text-lg text-gray-900 mb-3">Product Information</h3>
                 <div className="flex items-center gap-4 p-4 border rounded-lg">
                   <Image
                     src={selectedOrder.productImage}
@@ -327,7 +423,7 @@ export default function AdminCustomizedOrdersPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold mb-3">Customer Information</h3>
+                <h3 className="font-bold text-lg text-gray-900 mb-3">Customer Information</h3>
                 <div className="space-y-2 p-4 border rounded-lg">
                   <div>
                     <span className="text-sm text-gray-500">Name:</span>
@@ -348,7 +444,7 @@ export default function AdminCustomizedOrdersPage() {
 
               {selectedOrder.prescriptionData && (
                 <div>
-                  <h3 className="font-semibold mb-3">Prescription Details</h3>
+                  <h3 className="font-bold text-lg text-gray-900 mb-3">Prescription Details</h3>
                   <div className="space-y-3 p-4 border rounded-lg">
                     {selectedOrder.prescriptionData.rightEye?.sphere && (
                       <div>
@@ -392,7 +488,7 @@ export default function AdminCustomizedOrdersPage() {
 
               {selectedOrder.prescriptionData?.prescriptionFile && (
                 <div>
-                  <h3 className="font-semibold mb-3">Prescription Image</h3>
+                  <h3 className="font-bold text-lg text-gray-900 mb-3">Prescription Image</h3>
                   <div className="border rounded-lg overflow-hidden">
                     <Image
                       src={selectedOrder.prescriptionData?.prescriptionFile}
@@ -415,7 +511,7 @@ export default function AdminCustomizedOrdersPage() {
               )}
 
               <div>
-                <h3 className="font-semibold mb-3">Pricing</h3>
+                <h3 className="font-bold text-lg text-gray-900 mb-3">Pricing</h3>
                 <div className="space-y-2 p-4 bg-blue-50 rounded-lg">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-700">Frame Price:</span>
@@ -441,7 +537,7 @@ export default function AdminCustomizedOrdersPage() {
 
               {selectedOrder.checkoutLink && (
                 <div>
-                  <h3 className="font-semibold mb-3">Checkout Link</h3>
+                  <h3 className="font-bold text-lg text-gray-900 mb-3">Checkout Link</h3>
                   <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <input type="text" value={selectedOrder.checkoutLink} readOnly className="flex-1 bg-transparent text-sm" />
                     <button
@@ -463,17 +559,17 @@ export default function AdminCustomizedOrdersPage() {
       </Dialog>
 
       <Dialog open={showPricingDialog} onOpenChange={setShowPricingDialog}>
-        <DialogContent className="sm:max-w-125">
-          <DialogHeader>
-            <DialogTitle>Set Final Lens Price</DialogTitle>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-2xl">Quote Customized Order</DialogTitle>
             <DialogDescription>
-              Enter the final lens price and generate a checkout link for the customer
+              Set the final lens price and generate a checkout link
             </DialogDescription>
           </DialogHeader>
 
           {selectedOrder && (
-            <div className="space-y-6">
-              <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="space-y-5 pt-4">
+              <div className="p-4 bg-linear-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                 <div className="text-sm text-gray-500 mb-1">Order ID</div>
                 <div className="font-mono font-semibold mb-3">{selectedOrder.id}</div>
                 <div className="flex items-center gap-3 mb-3">
@@ -554,7 +650,7 @@ export default function AdminCustomizedOrdersPage() {
                 </div>
               )}
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -567,7 +663,7 @@ export default function AdminCustomizedOrdersPage() {
                   <Button
                     type="button"
                     onClick={handleSubmitPrice}
-                    className="flex-1 bg-[#1d4e89] hover:bg-[#15396b]"
+                    className="flex-1 bg-[#1d4e89] hover:bg-[#15396b] text-white"
                     disabled={submitting || !finalLensPrice}
                   >
                     {submitting ? 'Quoting...' : 'Quote Price'}
@@ -576,10 +672,10 @@ export default function AdminCustomizedOrdersPage() {
                   <Button
                     type="button"
                     onClick={handleGenerateLink}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                     disabled={submitting || generatedLink !== ''}
                   >
-                    {submitting ? 'Generating...' : generatedLink ? 'Link Generated' : 'Generate Checkout Link'}
+                    {submitting ? 'Generating...' : generatedLink ? 'Link Generated' : 'Generate Link'}
                   </Button>
                 )}
               </div>
@@ -587,6 +683,8 @@ export default function AdminCustomizedOrdersPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+        </div>
+      </div>
+    </main>
   );
 }
