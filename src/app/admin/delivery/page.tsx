@@ -7,7 +7,7 @@ import { Package, Truck, LogOut, Box, CheckCircle, Loader } from 'lucide-react';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/firebase/config';
 import { collection, getDocs, query, updateDoc, doc, orderBy } from 'firebase/firestore';
-import { Order } from '@/types/order';
+import { Order, customizedOrder } from '@/types/order';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,10 +19,53 @@ export default function DeliveryPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [activeDeliveries, setActiveDeliveries] = useState<Order[]>([]);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orders, setOrders] = useState<DeliveryOrder[]>([]);
+  const [activeDeliveries, setActiveDeliveries] = useState<DeliveryOrder[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<DeliveryOrder | null>(null);
   const [isUpdateStatusOpen, setIsUpdateStatusOpen] = useState(false);
+
+  type DeliveryOrder = {
+    id: string;
+    orderId: string;
+    kind: 'standard' | 'customized';
+    customer: {
+      name: string;
+      email?: string;
+      address: string;
+      city?: string;
+      zipCode?: string;
+      phone: string;
+    };
+    totalAmount: number;
+    deliveryStatus: string;
+    statusKey: 'pending' | 'processing' | 'in transit' | 'delivered' | 'cancelled';
+    paymentReference?: string;
+    paymentStatus?: string;
+    paymentMethod?: string;
+    shippingFee?: number;
+    createdAt?: unknown;
+  };
+
+  const normalizeDeliveryStatus = (status: string): DeliveryOrder['statusKey'] => {
+    const normalized = (status || '').toLowerCase();
+    if (normalized === 'pending') return 'pending';
+    if (normalized === 'processing') return 'processing';
+    if (normalized === 'in transit') return 'in transit';
+    if (normalized === 'delivered') return 'delivered';
+    if (normalized === 'cancelled') return 'cancelled';
+    if (normalized === 'pending-quote' || normalized === 'quoted') return 'pending';
+    if (normalized === 'confirmed' || normalized === 'paid') return 'processing';
+    if (normalized === 'shipped') return 'in transit';
+    if (normalized === 'completed') return 'delivered';
+    return 'pending';
+  };
+
+  const toTitleCase = (value: string) =>
+    value
+      .replace(/-/g, ' ')
+      .split(' ')
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(' ');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -47,10 +90,15 @@ export default function DeliveryPage() {
       const [ordersSnapshot, customizedSnapshot] = await Promise.all([getDocs(ordersQuery), getDocs(customizedOrdersQuery)]);
       const snapshot = { docs: [...ordersSnapshot.docs, ...customizedSnapshot.docs] };
       const ordersData = snapshot.docs.map(doc => {
-        const data = doc.data();
+        const data = doc.data() as Partial<Order> & Partial<customizedOrder>;
+        const isCustomizedOrder = Boolean(
+          data?.productName || data?.lensType || data?.estimatedLensPrice || data?.framePrice
+        );
+        const rawStatus = data.deliveryStatus || data.paymentStatus || 'pending';
         return {
           id: doc.id,
           orderId: data.orderId || '',
+          kind: isCustomizedOrder ? 'customized' : 'standard',
           customer: {
             name: data.customer?.name || '',
             email: data.customer?.email || '',
@@ -59,20 +107,19 @@ export default function DeliveryPage() {
             zipCode: data.customer?.zipCode || '',
             phone: data.customer?.phone || '',
           },
-          items: data.items || [],
           totalAmount: data.totalAmount || 0,
-          deliveryStatus: data.deliveryStatus || 'pending',
-          date: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          deliveryStatus: rawStatus,
+          statusKey: normalizeDeliveryStatus(rawStatus),
           paymentReference: data.paymentReference,
           paymentStatus: data.paymentStatus,
           paymentMethod: data.paymentMethod || '',
           shippingFee: data.shippingFee ?? 0,
-          createdAt: data.createdAt
-        } as Order;
+          createdAt: data.createdAt ?? data.submittedAt
+        } as DeliveryOrder;
       });
       
       setOrders(ordersData);
-      setActiveDeliveries(ordersData.filter(o => ['pending', 'processing', 'in transit', 'delivered'].includes(o.deliveryStatus)));
+      setActiveDeliveries(ordersData.filter(o => ['pending', 'processing', 'in transit', 'delivered'].includes(o.statusKey)));
     } catch (error) {
       console.error('Error fetching orders:', error);
     }
@@ -93,28 +140,31 @@ export default function DeliveryPage() {
     }
   };
 
-  const updateOrderStatus = async (id: string, newStatus: Order['deliveryStatus']) => {
+  const updateOrderStatus = async (order: DeliveryOrder, newStatus: DeliveryOrder['statusKey']) => {
     try {
-      await updateDoc(doc(db, 'orders', id), {
+      const collectionName = order.kind === 'customized' ? 'customizedOrders' : 'orders';
+      await updateDoc(doc(db, collectionName, order.id), {
         deliveryStatus: newStatus
       });
       
-      const updatedOrders = orders.map(order =>
-        order.id === id ? { ...order, deliveryStatus: newStatus } : order
+      const updatedOrders = orders.map(existingOrder =>
+        existingOrder.id === order.id
+          ? { ...existingOrder, deliveryStatus: newStatus, statusKey: normalizeDeliveryStatus(newStatus) }
+          : existingOrder
       );
       
       setOrders(updatedOrders);
-      setActiveDeliveries(updatedOrders.filter(o => ['pending', 'processing', 'in transit', 'delivered'].includes(o.deliveryStatus)));
+      setActiveDeliveries(updatedOrders.filter(o => ['pending', 'processing', 'in transit', 'delivered'].includes(o.statusKey)));
       
-      if (selectedOrder?.id === id) {
-        setSelectedOrder({ ...selectedOrder, deliveryStatus: newStatus });
+      if (selectedOrder?.id === order.id) {
+        setSelectedOrder({ ...selectedOrder, deliveryStatus: newStatus, statusKey: normalizeDeliveryStatus(newStatus) });
       }
     } catch (error) {
       console.error('Error updating order status:', error);
     }
   };
 
-  const openUpdateStatusDialog = (order: Order) => {
+  const openUpdateStatusDialog = (order: DeliveryOrder) => {
     setSelectedOrder(order);
     setIsUpdateStatusOpen(true);
   };
@@ -173,7 +223,7 @@ export default function DeliveryPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Pending Shipment</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {orders.filter(o => o.deliveryStatus === 'pending').length}
+                    {orders.filter(o => o.statusKey === 'pending').length}
                   </p>
                 </div>
                 <Box className="w-8 h-8 text-orange-600" />
@@ -184,7 +234,7 @@ export default function DeliveryPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Processing</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {orders.filter(o => o.deliveryStatus === 'processing').length}
+                    {orders.filter(o => o.statusKey === 'processing').length}
                   </p>
                 </div>
                 <Package className="w-8 h-8 text-blue-600" />
@@ -195,7 +245,7 @@ export default function DeliveryPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">In Transit</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {orders.filter(o => o.deliveryStatus === 'in transit').length}
+                    {orders.filter(o => o.statusKey === 'in transit').length}
                   </p>
                 </div>
                 <Truck className="w-8 h-8 text-purple-600" />
@@ -206,7 +256,7 @@ export default function DeliveryPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Delivered</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                  {orders.filter(o => o.deliveryStatus === 'delivered').length}
+                  {orders.filter(o => o.statusKey === 'delivered').length}
                   </p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
@@ -240,15 +290,15 @@ export default function DeliveryPage() {
                         </p>
                       </td>
                       <td className="py-4 px-6">
-                        <p className="text-sm font-medium text-gray-900">{order.customer.name}</p>
+                        <p className="text-sm font-medium text-gray-900">{order.customer.name || 'N/A'}</p>
                         <p className="text-xs text-gray-500">₦{order.totalAmount.toLocaleString()}</p>
                       </td>
                       <td className="py-4 px-6">
-                        <p className="text-sm text-gray-700 max-w-xs truncate">{order.customer.address}</p>
+                        <p className="text-sm text-gray-700 max-w-xs truncate">{order.customer.address || 'N/A'}</p>
                       </td>
                       <td className="py-4 px-6">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${statusColors[order.deliveryStatus]}`}>
-                          {order.deliveryStatus}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${statusColors[order.statusKey]}`}>
+                          {toTitleCase(order.deliveryStatus)}
                         </span>
                       </td>
                       <td className="py-4 px-6">
@@ -289,9 +339,9 @@ export default function DeliveryPage() {
                   <div>
                     <Label htmlFor="order-status">Order Status</Label>
                     <Select
-                      value={selectedOrder.deliveryStatus}
+                      value={selectedOrder.statusKey}
                       onValueChange={(value) => {
-                        updateOrderStatus(selectedOrder.id, value as Order['deliveryStatus']);
+                        updateOrderStatus(selectedOrder, value as DeliveryOrder['statusKey']);
                       }}
                     >
                       <SelectTrigger id="order-status" className="mt-2">
