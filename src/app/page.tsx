@@ -293,7 +293,7 @@ export default function Home() {
                 alt="Nusy Wears" 
                 width={140} 
                 height={50}
-                className="mb-4 invert"
+                className="mb-4"
               />
               <p className="text-sm">Premium eyewear for every style and budget.</p>
             </div>
