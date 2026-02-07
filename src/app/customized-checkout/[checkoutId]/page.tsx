@@ -51,7 +51,7 @@ export default function CustomizedCheckoutPage() {
         setPaymentSuccess(true);
       }
 
-      if (!orderData.totalPrice) {
+      if (!orderData.totalAmount) {
         setError('Order price not set yet. Please contact support.');
         return;
       }
@@ -71,11 +71,11 @@ export default function CustomizedCheckoutPage() {
   }, [checkoutId, fetchOrderData]);
 
   const handleProceedToPayment = () => {
-    if (!order?.totalPrice) {
+    if (!order?.totalAmount) {
       toast.error('Order price not set yet.');
       return;
     }
-    if (!order.customerInfo?.email) {
+    if (!order.customer?.email) {
       toast.error('Email is required for payment.', {
         description: 'Please contact support to update your email on this order.',
       });
@@ -201,21 +201,21 @@ export default function CustomizedCheckoutPage() {
           doc.text('Name:', 56, currentY);
           doc.setTextColor(15, 23, 42);
           doc.setFont('helvetica', 'bold');
-          doc.text(String(order.customerInfo.name), 140, currentY);
+          doc.text(String(order.customer.name), 140, currentY);
 
           currentY += 16;
           doc.setTextColor(71, 85, 105);
           doc.setFont('helvetica', 'normal');
           doc.text('Email:', 56, currentY);
           doc.setTextColor(15, 23, 42);
-          doc.text(String(order.customerInfo.email || ''), 140, currentY);
+          doc.text(String(order.customer.email || ''), 140, currentY);
 
           currentY += 16;
           doc.setTextColor(71, 85, 105);
           doc.setFont('helvetica', 'normal');
           doc.text('Phone:', 56, currentY);
           doc.setTextColor(15, 23, 42);
-          doc.text(String(order.customerInfo.phone || ''), 140, currentY);
+          doc.text(String(order.customer.phone || ''), 140, currentY);
 
           // Items section
           currentY += 28;
@@ -255,7 +255,7 @@ export default function CustomizedCheckoutPage() {
           doc.setTextColor(15, 23, 42);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
-          doc.text(`₦${String(order.totalPrice.toLocaleString())}`, pageWidth - 56, currentY, { align: 'right' });
+          doc.text(`₦${String(order.totalAmount.toLocaleString())}`, pageWidth - 56, currentY, { align: 'right' });
 
           // Summary section
           const summaryY = currentY + 28;
@@ -268,7 +268,7 @@ export default function CustomizedCheckoutPage() {
           doc.text('Subtotal:', leftCol, summaryY);
           doc.setTextColor(15, 23, 42);
           doc.setFont('helvetica', 'bold');
-          doc.text(`₦${String(order.totalPrice.toLocaleString())}`, rightCol, summaryY, { align: 'right' });
+          doc.text(`₦${String(order.totalAmount.toLocaleString())}`, rightCol, summaryY, { align: 'right' });
 
           // Total line
           doc.setDrawColor(226, 232, 240);
@@ -279,7 +279,7 @@ export default function CustomizedCheckoutPage() {
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(29, 78, 137);
           doc.text('Total Due:', leftCol, summaryY + 28);
-          doc.text(`₦${String(order.totalPrice.toLocaleString())}`, rightCol, summaryY + 28, { align: 'right' });
+          doc.text(`₦${String(order.totalAmount.toLocaleString())}`, rightCol, summaryY + 28, { align: 'right' });
 
           // Footer
           const footerY = pageHeight - 50;
@@ -350,7 +350,7 @@ export default function CustomizedCheckoutPage() {
             <div className="bg-gray-50 rounded-xl p-6 mb-6 space-y-3">
               <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                 <span className="text-sm font-medium text-gray-600">Order ID</span>
-                <span className="font-mono font-bold text-gray-900">{order.id}</span>
+                <span className="font-mono font-bold text-gray-900">{order.orderId}</span>
               </div>
               <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                 <span className="text-sm font-medium text-gray-600">Payment Reference</span>
@@ -358,11 +358,11 @@ export default function CustomizedCheckoutPage() {
               </div>
               <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                 <span className="text-sm font-medium text-gray-600">Total Amount</span>
-                <span className="text-xl font-bold text-green-600">₦{order.totalPrice.toLocaleString()}</span>
+                <span className="text-xl font-bold text-green-600">₦{order.totalAmount.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-600">Order Date</span>
-                <span className="text-sm text-gray-900">{new Date(order.submittedAt).toLocaleDateString()}</span>
+                <span className="text-sm text-gray-900">{formatFirestoreTimestamp(order.submittedAt, 'en-NG')}</span>
               </div>
             </div>
           )}
@@ -446,7 +446,7 @@ export default function CustomizedCheckoutPage() {
                 <div className="pt-3 border-t flex justify-between">
                   <span className="text-lg font-bold text-gray-900">Total</span>
                   <span className="text-2xl font-bold text-[#1d4e89]">
-                    ₦{order.totalPrice?.toLocaleString()}
+                    ₦{order.totalAmount?.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -517,16 +517,16 @@ export default function CustomizedCheckoutPage() {
               <div className="space-y-3 text-sm">
                 <div>
                   <div className="text-gray-500">Name</div>
-                  <div className="font-medium text-gray-900">{order.customerInfo.name}</div>
+                  <div className="font-medium text-gray-900">{order.customer.name}</div>
                 </div>
                 <div>
                   <div className="text-gray-500">Phone</div>
-                  <div className="font-medium text-gray-900">{order.customerInfo.phone}</div>
+                  <div className="font-medium text-gray-900">{order.customer.phone}</div>
                 </div>
-                {order.customerInfo.email && (
+                {order.customer.email && (
                   <div>
                     <div className="text-gray-500">Email</div>
-                    <div className="font-medium text-gray-900">{order.customerInfo.email}</div>
+                    <div className="font-medium text-gray-900">{order.customer.email}</div>
                   </div>
                 )}
               </div>
@@ -537,7 +537,7 @@ export default function CustomizedCheckoutPage() {
 
               <button
                 onClick={handleProceedToPayment}
-                disabled={showPaystackModal || !order.totalPrice}
+                disabled={showPaystackModal || !order.totalAmount}
                 className="w-full bg-[#1d4e89] text-white py-4 px-6 rounded-xl hover:bg-[#15396b] transition-colors flex items-center justify-center gap-2 font-semibold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {showPaystackModal ? (
@@ -548,7 +548,7 @@ export default function CustomizedCheckoutPage() {
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5" />
-                    Pay ₦{order.totalPrice?.toLocaleString()}
+                    Pay ₦{order.totalAmount?.toLocaleString()}
                   </>
                 )}
               </button>
@@ -559,7 +559,7 @@ export default function CustomizedCheckoutPage() {
             <div className="bg-gray-50 rounded-lg p-4 text-sm">
               <div className="flex justify-between text-gray-600 mb-2">
                 <span>Order ID:</span>
-                <span className="font-mono font-medium text-gray-900">{order.id}</span>
+                <span className="font-mono font-medium text-gray-900">{order.orderId}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Quote Date:</span>
@@ -575,8 +575,8 @@ export default function CustomizedCheckoutPage() {
       <PaystackModal
         isOpen={showPaystackModal}
         onClose={() => setShowPaystackModal(false)}
-        amount={order.totalPrice}
-        email={order.customerInfo.email ?? ''}
+        amount={order.totalAmount}
+        email={order.customer.email ?? ''}
         onSuccess={handlePaymentSuccess}
         onError={handlePaymentError}
       />
