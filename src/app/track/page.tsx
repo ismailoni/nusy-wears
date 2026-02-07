@@ -41,13 +41,19 @@ function TrackOrderContent() {
 
       // Try querying by orderId field
       const ordersRef = collection(db, 'orders');
-      const q = query(ordersRef, where('orderId', '==', trimmedOrderNumber));
-      const snapshot = await getDocs(q);
+      const customizedOrdersRef = collection(db, 'customizedOrders');
+
+      const q1 = query(ordersRef, where('orderId', '==', trimmedOrderNumber));
+      const q2 = query(customizedOrdersRef, where('orderId', '==', trimmedOrderNumber));
+      const snapshot1 = await getDocs(q1);
+      const snapshot2 = await getDocs(q2);
+
+      const snapshot = [...snapshot1.docs, ...snapshot2.docs];
       
-      if (!snapshot.empty) {
-        const orderData = snapshot.docs[0].data();
+      if (snapshot.length > 0) {
+        const orderData = snapshot[0].data();
         foundOrder = {
-          id: snapshot.docs[0].id,
+          id: snapshot[0].id,
           ...orderData,
         } as Order;
       }
