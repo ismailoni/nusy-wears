@@ -186,7 +186,7 @@ export default function ProductDetailPage() {
       
       // Create customized order in Firestore
       const orderData = {
-        orderId: `ORD-${new Date()}`,
+        orderId: `ORD-${Date.now()}`,
         productId: product.id,
         productName: product.name,
         productImage: product.image,
