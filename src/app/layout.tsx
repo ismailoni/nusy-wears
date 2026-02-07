@@ -15,8 +15,35 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nusy Wears - Premium Eyewear",
-  description: "Shop premium eyewear with customization options",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nusy-wears-web.vercel.app/'),
+  title: {
+    default: 'Nusy Wears',
+    template: '%s | Nusy Wears',
+  },
+  description: 'Premium eyewear with customization options. Shop frames, lenses, and accessories.',
+  applicationName: 'Nusy Wears',
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'Nusy Wears',
+    title: 'Nusy Wears',
+    description: 'Premium eyewear with customization options. Shop frames, lenses, and accessories.',
+    url: '/',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Nusy Wears',
+    description: 'Premium eyewear with customization options. Shop frames, lenses, and accessories.',
+  },
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

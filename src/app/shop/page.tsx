@@ -77,12 +77,12 @@ export default function ShopPage() {
       <Navigation />
 
       {/* Hero Header */}
-      <section className="bg-linear-to-br from-[#1d4e89] to-[#15396b] text-white py-12 sm:py-16\">
+      <section className="bg-linear-to-br from-[#1d4e89] to-[#15396b] text-white py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4\">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4">
             Our Collection
           </h1>
-          <p className="text-blue-100 text-lg max-w-2xl mx-auto\">
+          <p className="text-blue-100 text-lg max-w-2xl mx-auto">
             Explore our complete range of premium eyewear designed for every style
           </p>
         </div>
