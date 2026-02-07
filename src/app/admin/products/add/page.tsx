@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
 import { frameColors, lensOptions } from '@/types/products';
-import { Upload, LogOut } from 'lucide-react';
+import { Upload, LogOut, ArrowLeft, ImagePlus } from 'lucide-react';
 import Link from 'next/link';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import Image from 'next/image';
@@ -184,44 +184,44 @@ export default function AddProductPage() {
   };
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
-      <nav className="bg-white border-b shadow-sm sticky top-0 z-10">
+    <main className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-50">
+      {/* Navigation Bar */}
+      <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link
-              href="/admin/products"
-              className="text-2xl font-bold text-[#1d4e89] hover:text-[#15396b] transition-colors"
-            >
-              Add New Product
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/admin/products" className="flex items-center gap-2 text-gray-600 hover:text-gray-700 transition-colors">
+                <ArrowLeft className="w-5 h-5" />
+                <span className="text-sm font-medium">Back</span>
+              </Link>
+              <div className="hidden sm:block w-px h-6 bg-gray-200"></div>
+              <h1 className="text-2xl font-bold text-gray-900">Add Product</h1>
+            </div>
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              Logout
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <Link
-            href="/admin/dashboard"
-            className="text-blue-600 hover:text-blue-700"
-          >
-            ← Back to Dashboard
-          </Link>
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        {/* Page Header */}
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Create New Product</h2>
+          <p className="text-gray-600">Add a new product to your catalog with images, videos, and details</p>
         </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        {/* Form Card */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 text-red-800 px-6 py-4 rounded-lg mb-6 flex items-start gap-3">
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-4 rounded-lg mb-6 flex items-start gap-3">
               <svg
-                className="w-5 h-5 mt-0.5 shrink-0"
+                className="w-5 h-5 mt-0.5 shrink-0 text-red-600"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -232,8 +232,8 @@ export default function AddProductPage() {
                 />
               </svg>
               <div>
-                <p className="font-semibold">Error</p>
-                <p className="text-sm">{error}</p>
+                <p className="font-semibold text-sm">Error</p>
+                <p className="text-sm mt-0.5">{error}</p>
               </div>
             </div>
           )}
@@ -241,7 +241,7 @@ export default function AddProductPage() {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information Section */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2 border-gray-200">
                 Basic Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -390,7 +390,7 @@ export default function AddProductPage() {
 
             {/* Description Section */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2 border-gray-200">
                 Product Description
               </h3>
               <div>
@@ -417,54 +417,57 @@ export default function AddProductPage() {
               <Label className="block text-sm font-medium text-gray-700 mb-2">
                 Featured Product
               </Label>
-              <Toggle
-                type="button"
-                pressed={formData.featured}
-                onPressedChange={(pressed) =>
-                  setFormData({ ...formData, featured: pressed })
-                }
-                className="data-[state=on]:bg-[#1d4e89] h-6 w-11 rounded-full bg-gray-200 relative after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-transform data-[state=on]:after:translate-x-full"
-              />
-              <p className="text-sm text-gray-500 mt-1">
+              <div className="flex items-center gap-3">
+                <Toggle
+                  type="button"
+                  pressed={formData.featured}
+                  onPressedChange={(pressed) =>
+                    setFormData({ ...formData, featured: pressed })
+                  }
+                  className="data-[state=on]:bg-[#1d4e89] h-6 w-11 rounded-full bg-gray-200 relative after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-transform data-[state=on]:after:translate-x-full"
+                />
+                <span className="text-sm text-gray-600">{formData.featured ? 'Featured' : 'Not featured'}</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
                 Toggle to feature this product on the homepage.
               </p>
             </div>
 
             {/* Media Upload Section */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2 border-gray-200">
                 Product Media
               </h3>
 
               {/* Image Upload */}
               <div className="mb-6">
                 <Label className="block text-sm font-medium text-gray-700 mb-3">
-                  Product Image <span className="text-red-500">*</span>
+                  Product Images <span className="text-red-500">*</span>
                 </Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[#1d4e89] transition-colors bg-gray-50">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#1d4e89] hover:bg-blue-50 transition-all bg-gray-50">
                   {formData.images.length > 0 ? (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {formData.images.map((img, index) => (
-                          <div key={img} className="relative group">
+                          <div key={img} className="relative group rounded-lg overflow-hidden">
                             <Image
                               src={img}
                               alt={`Product image ${index + 1}`}
-                              className="w-full h-28 object-cover rounded-lg shadow-sm"
+                              className="w-full h-28 object-cover"
                               width={160}
                               height={112}
                             />
                             {index === 0 && (
-                              <span className="absolute top-2 left-2 bg-[#1d4e89] text-white text-xs px-2 py-1 rounded-full">
+                              <span className="absolute top-2 left-2 bg-[#1d4e89] text-white text-xs px-2 py-1 rounded-full font-medium">
                                 Main
                               </span>
                             )}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                               {index !== 0 && (
                                 <button
                                   type="button"
                                   onClick={() => handleSetMainImage(index)}
-                                  className="text-xs bg-white text-gray-900 px-2 py-1 rounded"
+                                  className="text-xs bg-white text-gray-900 px-3 py-1.5 rounded font-medium hover:bg-gray-100 transition-colors"
                                 >
                                   Set main
                                 </button>
@@ -472,7 +475,7 @@ export default function AddProductPage() {
                               <button
                                 type="button"
                                 onClick={() => handleRemoveImage(index)}
-                                className="text-xs bg-red-600 text-white px-2 py-1 rounded"
+                                className="text-xs bg-red-600 text-white px-3 py-1.5 rounded font-medium hover:bg-red-700 transition-colors"
                               >
                                 Remove
                               </button>
@@ -481,14 +484,14 @@ export default function AddProductPage() {
                         ))}
                       </div>
                       <p className="text-sm font-medium text-green-600">
-                        Images uploaded successfully!
+                        ✓ {formData.images.length} image{formData.images.length !== 1 ? 's' : ''} uploaded
                       </p>
                       <Label
                         htmlFor="image-input"
                         className="cursor-pointer inline-block"
                       >
                         <span className="text-sm text-[#1d4e89] hover:text-[#15396b] font-medium underline">
-                          Add more images
+                          + Add more images
                         </span>
                       </Label>
                     </div>
@@ -497,14 +500,14 @@ export default function AddProductPage() {
                       htmlFor="image-input"
                       className="cursor-pointer block"
                     >
-                      <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <ImagePlus className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                       <p className="text-base font-medium text-gray-700 mb-1">
                         {uploadingImage
                           ? "Uploading images..."
                           : "Click to upload product images"}
                       </p>
                       <p className="text-sm text-gray-500">
-                        PNG, JPG up to 10MB • First image is main
+                        PNG, JPG up to 10MB • First image will be the main product image
                       </p>
                     </Label>
                   )}
@@ -524,18 +527,18 @@ export default function AddProductPage() {
               <div>
                 <Label className="block text-sm font-medium text-gray-700 mb-3">
                   Product Video{" "}
-                  <span className="text-gray-400 text-xs">(Optional)</span>
+                  <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                 </Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[#1d4e89] transition-colors bg-gray-50">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#1d4e89] hover:bg-blue-50 transition-all bg-gray-50">
                   {videoPreview ? (
                     <div className="space-y-4">
-                      <div className="relative inline-block">
+                      <div className="relative inline-block rounded-lg overflow-hidden shadow-md">
                         <video
                           src={videoPreview}
-                          className="w-48 h-48 object-cover mx-auto rounded-lg shadow-md"
+                          className="w-48 h-48 object-cover"
                           controls
                         />
-                        <div className="absolute top-2 right-2 bg-green-500 text-white p-2 rounded-full shadow-lg">
+                        <div className="absolute top-3 right-3 bg-green-500 text-white p-2 rounded-full shadow-lg">
                           <svg
                             className="w-4 h-4"
                             fill="currentColor"
@@ -550,7 +553,7 @@ export default function AddProductPage() {
                         </div>
                       </div>
                       <p className="text-sm font-medium text-green-600">
-                        Video uploaded successfully!
+                        ✓ Video uploaded successfully
                       </p>
                       <Label
                         htmlFor="video-input"
@@ -590,7 +593,7 @@ export default function AddProductPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 pt-6 border-t">
+            <div className="flex gap-4 pt-6 border-t border-gray-200">
               <Button
                 type="submit"
                 disabled={
@@ -622,7 +625,7 @@ export default function AddProductPage() {
                     Adding Product...
                   </span>
                 ) : (
-                  "Add Product"
+                  "Create Product"
                 )}
               </Button>
               <Link
