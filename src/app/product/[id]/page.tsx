@@ -41,7 +41,8 @@ export default function ProductDetailPage() {
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
-    phone: ''
+    phone: '',
+    address: ''
   });
   
   // Prescription data
@@ -202,7 +203,7 @@ export default function ProductDetailPage() {
           additionalNotes: prescriptionData.additionalNotes,
           prescriptionFile: prescriptionData.prescriptionFile,
         } : null,
-        customerInfo: {
+        customer: {
           name: customerInfo.name,
           email: customerInfo.email,
           phone: customerInfo.phone,
@@ -330,7 +331,7 @@ export default function ProductDetailPage() {
                   <video
                     src={product.video}
                     controls
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-center"
                     poster={product.image}
                   >
                     Your browser does not support the video tag.
@@ -825,12 +826,22 @@ export default function ProductDetailPage() {
             </div>
 
             <div>
-              <Label htmlFor="contact-email">Email (Optional)</Label>
+              <Label htmlFor="contact-email">Email</Label>
               <Input
                 id="contact-email"
                 placeholder="john.doe@example.com"
                 value={customerInfo.email}
                 onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="contact-address">Address</Label>
+              <Input
+                id="contact-address"
+                placeholder="123 Main St, City, Country"
+                value={customerInfo.address}
+                onChange={(e) => setCustomerInfo(prev => ({ ...prev, address: e.target.value }))}
               />
             </div>
 
