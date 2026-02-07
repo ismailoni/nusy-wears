@@ -6,6 +6,7 @@ export interface Order {
     email: string;
     address: string;
     zipCode: string;
+    city: string;
     phone: string;
   };
   deliveryStatus: string;
@@ -23,11 +24,12 @@ export interface customizedOrder {
   orderId: string;
   adminNotes?: string | null;
   checkoutLink?: string;
-  customerInfo: {
+  customer: {
     name: string;
     email?: string;
     phone: string;
     address: string;
+    city: string;
     zipCode?: string;
   };
   estimatedLensPrice: number;
@@ -63,7 +65,7 @@ export interface customizedOrder {
     | 'confirmed'
     | 'paid';
   submittedAt: Date;
-  totalPrice: number;
+  totalAmount: number;
   deliveryStatus?: 
     | 'processing'
     | 'shipped'
