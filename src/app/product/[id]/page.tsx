@@ -331,7 +331,7 @@ export default function ProductDetailPage() {
                   <video
                     src={product.video}
                     controls
-                    className="w-full h-full object-center"
+                    className="w-full h-full object-contain"
                     poster={product.image}
                   >
                     Your browser does not support the video tag.
