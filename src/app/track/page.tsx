@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Order, customizedOrder, Item } from '@/types/order';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import NavBar from '@/components/NavBar';
 import { formatFirestoreTimestamp } from '@/lib/utils';
@@ -215,21 +216,69 @@ function TrackOrderContent() {
     }
   };
 
+  const statusLower = order?.deliveryStatus?.toLowerCase() ?? '';
+
   return (
     <div className="min-h-screen bg-linear-to-b from-white via-gray-50 to-white">
       <NavBar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-[#1d4e89] to-[#15396b] rounded-2xl mb-6 shadow-lg">
-            <Package className="w-8 h-8 text-white" />
+        {/* Hero */}
+        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#1d4e89] via-[#1c3f6b] to-[#15396b] text-white mb-10 shadow-2xl">
+          <div aria-hidden className="absolute inset-0 bg-grid-white/5 mask-[radial-gradient(circle_at_center,white,transparent_60%)]" />
+          <div aria-hidden className="absolute -top-24 -right-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+          <div aria-hidden className="absolute -bottom-28 -left-28 h-64 w-64 rounded-full bg-black/15 blur-3xl" />
+
+          <div className="relative z-10 px-6 sm:px-10 lg:px-12 py-10 sm:py-14 flex flex-col gap-6">
+            <div className="inline-flex items-center gap-2 self-start rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs sm:text-sm text-white/90 backdrop-blur">
+              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-300" />
+              Live delivery status
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="inline-flex items-center gap-3 text-sm text-white/80">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 shadow-inner shadow-black/10">
+                  <Package className="h-6 w-6" />
+                </span>
+                <span className="font-medium">Track standard & customized orders in one place</span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight">
+                Track your order with
+                <span className="block bg-linear-to-r from-white via-blue-50 to-emerald-100 bg-clip-text text-transparent">
+                  instant updates
+                </span>
+              </h1>
+              <p className="text-base sm:text-lg text-white/85 max-w-2xl">
+                Enter your order or tracking number to see delivery progress, payment reference, and item details without leaving this page.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Button
+                asChild
+                size="lg"
+                className="bg-white text-[#1d4e89] hover:bg-white/90 shadow-lg shadow-black/10"
+              >
+                <a href="#order-tracker">Start tracking</a>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20"
+              >
+                <Link href="/support">Need help?</Link>
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-white/80">
+              <span className="rounded-full bg-white/10 px-3 py-1">Secure lookups</span>
+              <span className="rounded-full bg-white/10 px-3 py-1">Realtime status</span>
+              <span className="rounded-full bg-white/10 px-3 py-1">Standard & customized</span>
+            </div>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">Track Your Order</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Enter your order number or tracking number to check the status of your delivery
-          </p>
-        </div>
+        </section>
 
         {/* Inline searching indicator (shows when loading and before results) */}
         {loading && !order && (
@@ -240,7 +289,7 @@ function TrackOrderContent() {
         )}
 
         {/* Search Box */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8 border border-gray-100">
+        <div id="order-tracker" className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8 border border-gray-100">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Input
               type="text"
@@ -279,33 +328,49 @@ function TrackOrderContent() {
         {order && (
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             {/* Order Info */}
-            <Card className="shadow-lg border-gray-100">
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-3xl font-bold text-gray-900">{order.orderId || order.id}</CardTitle>
-                    <p className="text-gray-600 mt-2 text-sm">
-                      Ordered on {formatFirestoreTimestamp(order.createdAt, 'en-NG')}
-                    </p>
+            <Card className="shadow-lg border-gray-100 py-6">
+              <CardHeader className="pb-4">
+                <div className="flex flex-col gap-3">
+                  <div className="inline-flex items-center gap-2 self-start rounded-full bg-blue-50 text-blue-800 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+                    Order details
                   </div>
-                  <Badge className={`px-5 py-2.5 text-sm font-bold flex items-center gap-2 whitespace-nowrap ${getStatusColor(order.deliveryStatus)} shadow-sm border-0`}>
-                    {order.progressStatus === 'delivered' && (
-                      <CheckCircle2 className="w-5 h-5" />
-                    )}
-                    {toTitleCase(order.deliveryStatus)}
-                  </Badge>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-3xl font-bold text-gray-900">{order.orderId}</CardTitle>
+                      <p className="text-gray-600 mt-2 text-sm">
+                        Ordered on {formatFirestoreTimestamp(order.createdAt, 'en-NG')}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <Badge className={`px-4 py-2 text-sm font-semibold flex items-center gap-2 whitespace-nowrap ${getStatusColor(order.deliveryStatus)} shadow-sm border-0`}>
+                        {order.progressStatus === 'delivered' && (
+                          <CheckCircle2 className="w-5 h-5" />
+                        )}
+                        {toTitleCase(order.deliveryStatus)}
+                      </Badge>
+                      <span className="rounded-full bg-blue-50 text-blue-900 px-4 py-2 text-sm font-semibold border border-blue-100">
+                        Total: ₦{order.totalAmount.toLocaleString()}
+                      </span>
+                      <span className="rounded-full bg-gray-50 text-gray-700 px-3 py-2 text-xs font-semibold border border-gray-200">
+                        {order.kind === 'customized' ? 'Customized order' : `${(order.items ?? []).length || 0} items`}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
 
                 {/* Progress Tracker */}
                 <div className="mb-10 pb-10 border-b border-gray-200">
-                  <h3 className="font-bold text-gray-900 mb-6 text-lg">Delivery Progress</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-gray-900 text-lg">Delivery Progress</h3>
+                    <p className="text-xs text-gray-500">Live status updates</p>
+                  </div>
                   <div className="flex items-center justify-between relative">
                     {/* Progress Line */}
                     <Progress 
                       value={(getStatusStep(order.progressStatus) - 1) * 33.33} 
-                      className="absolute left-0 right-0 top-5 h-1.5 bg-gray-200"
+                      className="absolute left-0 right-0 top-5 h-1.5 bg-gray-200 overflow-hidden"
                     />
 
                   {/* Steps */}
@@ -336,21 +401,70 @@ function TrackOrderContent() {
                     );
                   })}
                 </div>
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2 text-xs text-gray-600">
+                    <div className="flex items-start gap-2 rounded-lg bg-gray-50 border border-gray-100 p-3">
+                      <span className="mt-0.5 h-2 w-2 rounded-full bg-yellow-400" />
+                      <div>
+                        <p className="font-semibold text-gray-800">Pending</p>
+                        <p>We received your order and it&apos;s being queued for processing.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 rounded-lg bg-gray-50 border border-gray-100 p-3">
+                      <span className="mt-0.5 h-2 w-2 rounded-full bg-blue-500" />
+                      <div>
+                        <p className="font-semibold text-gray-800">Processing</p>
+                        <p>Payment confirmed and the package is being prepared for dispatch.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 rounded-lg bg-gray-50 border border-gray-100 p-3">
+                      <span className="mt-0.5 h-2 w-2 rounded-full bg-purple-500" />
+                      <div>
+                        <p className="font-semibold text-gray-800">In Transit</p>
+                        <p>Courier has your order and it&apos;s on the way to your address.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 rounded-lg bg-gray-50 border border-gray-100 p-3">
+                      <span className="mt-0.5 h-2 w-2 rounded-full bg-green-500" />
+                      <div>
+                        <p className="font-semibold text-gray-800">Delivered</p>
+                        <p>Package was successfully delivered. Enjoy your eyewear!</p>
+                      </div>
+                    </div>
+                  </div>
+                  {(statusLower === 'cancelled' || statusLower === 'pending-quote' || statusLower === 'quoted') && (
+                    <div className="mt-4 rounded-xl bg-orange-50 border border-orange-100 p-4 flex items-start gap-3 text-sm text-orange-800">
+                      <AlertCircle className="w-4 h-4 mt-0.5" />
+                      <div className="space-y-1">
+                        {statusLower === 'cancelled' && (
+                          <>
+                            <p className="font-semibold">Order cancelled</p>
+                            <p className="text-xs">This order was cancelled. If this is unexpected, please reach out to support with your order ID.</p>
+                          </>
+                        )}
+                        {(statusLower === 'pending-quote' || statusLower === 'quoted') && (
+                          <>
+                            <p className="font-semibold">Awaiting quote confirmation</p>
+                            <p className="text-xs">We&apos;re preparing your final lens quote. You&apos;ll see updated totals once it&apos;s confirmed.</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
               </div>
 
                 {/* Order ID and Payment Reference */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   {order.orderId && (
-                    <Card className="bg-linear-to-r from-blue-50 to-blue-100 border-blue-200">
-                      <CardContent className="pt-6">
+                    <Card className="bg-linear-to-r from-blue-50 to-blue-100 border-blue-200 py-6">
+                      <CardContent>
                         <p className="text-xs text-gray-700 mb-2 font-medium uppercase tracking-wider">Order ID</p>
                         <p className="text-xl font-bold text-[#1d4e89] font-mono">{order.orderId}</p>
                       </CardContent>
                     </Card>
                   )}
                   {order.paymentReference && (
-                    <Card className="bg-linear-to-r from-green-50 to-green-100 border-green-200">
-                      <CardContent className="pt-6">
+                    <Card className="bg-linear-to-r from-green-50 to-green-100 border-green-200 py-6">
+                      <CardContent>
                         <p className="text-xs text-gray-700 mb-2 font-medium uppercase tracking-wider">Payment Reference</p>
                         <p className="text-xl font-bold text-green-700 font-mono">{order.paymentReference}</p>
                       </CardContent>
@@ -362,7 +476,7 @@ function TrackOrderContent() {
               {/* Delivery Contact Info */}
               <div className="border-t pt-6">
                 <h3 className="font-bold text-gray-900 mb-4 text-lg">Delivery To</h3>
-                <div className="space-y-3">
+                <div className="space-y-3 bg-gray-50 border border-gray-100 rounded-xl p-4">
                   <div>
                     <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Name</p>
                     <p className="text-base font-semibold text-gray-900">{order.customer.name || 'N/A'}</p>
@@ -383,7 +497,7 @@ function TrackOrderContent() {
             </Card>
 
             {/* Order Details */}
-            <Card className="shadow-lg border-gray-100">
+            <Card className="shadow-lg border-gray-100 py-6">
               <CardHeader>
                 <CardTitle className="text-lg">
                   {order.kind === 'customized' ? 'Customized Order Details' : 'Order Items'}
